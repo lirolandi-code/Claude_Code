@@ -3,14 +3,19 @@
   "nodes": [
     {
       "parameters": {
-        "updates": ["messages"],
+        "updates": [
+          "messages"
+        ],
         "options": {}
       },
       "id": "aca6a9d2-dcb1-47d6-9211-c78e9b87017c",
       "name": "WhatsApp Trigger",
       "type": "n8n-nodes-base.whatsAppTrigger",
       "typeVersion": 1,
-      "position": [-624, -80],
+      "position": [
+        -624,
+        -80
+      ],
       "webhookId": "b5d006ec-836d-4830-b90b-5c3756f5f689",
       "credentials": {
         "whatsAppTriggerApi": {
@@ -18,328 +23,6 @@
           "name": "WhatsApp OAuth account 2"
         }
       }
-    },
-    {
-      "parameters": {
-        "jsCode": "const jsonData = $json;\n\nif (jsonData && jsonData.messages && jsonData.messages.length > 0) {\n    const message = jsonData.messages[0];\n    let textMessage = null;\n    let audioMessage = null;\n\n    if (message.type === \"text\") {\n        textMessage = message.text.body;\n    } else if (message.type === \"audio\") {\n        audioMessage = message.audio.url || null;\n    }\n\n    return [{ json: { text: textMessage, audio: audioMessage } }];\n} else {\n    return [{ json: { text: null, audio: null } }];\n}\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [-384, -80],
-      "id": "f32a1968-9b75-459e-a887-93b411acdcb7",
-      "name": "Code in JavaScript"
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.text }}",
-                    "rightValue": "",
-                    "operator": { "type": "string", "operation": "notEmpty", "singleValue": true },
-                    "id": "48a1db2f-5fd3-4e14-bd65-8ccf5c75f650"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": "Texto"
-            },
-            {
-              "conditions": {
-                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
-                "conditions": [
-                  {
-                    "id": "02ea7630-014c-4a2c-8775-342fe55e1ab7",
-                    "leftValue": "={{ $json.audio }}",
-                    "rightValue": "",
-                    "operator": { "type": "string", "operation": "notEmpty", "singleValue": true }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": "Audio"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [-208, -80],
-      "id": "41755456-13c2-4812-bfc2-47c6aab7e88c",
-      "name": "Switch"
-    },
-    {
-      "parameters": {
-        "url": "={{ $json.audio }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [-400, 176],
-      "id": "b3810107-8eac-4747-a6aa-2f1d7c086ba4",
-      "name": "HTTP Request1",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "xVvoVoyj2JNbqEJK",
-          "name": "Whatsapp Credentials"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "resource": "audio",
-        "operation": "transcribe",
-        "options": { "temperature": 0 }
-      },
-      "type": "@n8n/n8n-nodes-langchain.openAi",
-      "typeVersion": 2.1,
-      "position": [-192, 176],
-      "id": "5d5b0bf0-09c5-4488-bf81-1cd7e219b518",
-      "name": "Transcribe a recording",
-      "credentials": {
-        "openAiApi": {
-          "id": "uJ0zKiVb44r7l3Ak",
-          "name": "OpenAi account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "modelName": "models/gemini-2.5-pro",
-        "options": { "temperature": 0 }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
-      "typeVersion": 1,
-      "position": [48, 80],
-      "id": "899e7b7c-eb58-43d9-90bc-e49ec21c81bc",
-      "name": "Google Gemini Chat Model",
-      "retryOnFail": true,
-      "waitBetweenTries": 5000,
-      "credentials": {
-        "googlePalmApi": {
-          "id": "ewbwIkGbI7o0JVYi",
-          "name": "Google Gemini(PaLM) Api account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "sessionIdType": "customKey",
-        "sessionKey": "={{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}",
-        "contextWindowLength": 10
-      },
-      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
-      "typeVersion": 1.3,
-      "position": [176, 80],
-      "id": "55a0bebb-19f0-449f-944a-7366e1a5356f",
-      "name": "Simple Memory"
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.text }}",
-        "options": {
-          "systemMessage": "## ROL\nEres el Asistente de Recursos Humanos de SV. Tu objetivo es gestionar consultas de nómina e inasistencias de forma profesional y segura.\n\n## PROTOCOLO INICIAL OBLIGATORIO (PASO 0)\nAntes de procesar cualquier solicitud, ejecuta la herramienta 'valida_tel' usando el número del remitente.\n- Si NO devuelve datos: Responde únicamente: \"⚠️ Teléfono No Autorizado para este servicio\" y finaliza.\n- Si devuelve datos: Saluda con: \"Bienvenido al servicio de Consultas y soporte SV\" y ofrece los servicios:\n  1) Descargar Nómina\n  2) Consultar Información Asistencial\n  3) Consultas de Nómina (totales, vínculos, dependencias)\n\n## SERVICIOS\n\n### 1. Descarga de Nómina Habilitada\n- Si el usuario solicita su nómina o nómina habilitada:\n- ACCIÓN: No utilices herramientas de búsqueda.\n- RESPUESTA: Responde exactamente con el texto \"Consultar Nomina\". Esto disparará el proceso externo de Excel.\n\n### 2. Consulta de Información Asistencial\nPara este servicio, sigue este flujo lógico estrictamente:\n\n**A. Búsqueda de Empleado (Tool: 'Buscar_Empleado'):**\n1. Envía el Nombre o el DNI (si lo informa) siempre en MAYÚSCULAS. Si el usuario informa el Nombre pero no el DNI, dejar DNI=0 y NO SOLICITAR EL DNI.\n2. Si hay múltiples coincidencias: Listalas y pide al usuario que especifique el legajo.\n3. Si no hay resultados: Reintenta invirtiendo el orden de Nombre y Apellido.\n4. Si sigue sin resultados: Intenta una variación fonética (ej. cambiar 'J' por 'G' o 'S' por 'Z').\n5. Si falla todo: Responde \"No se encontró al empleado\" y finaliza.\n\n**B. Obtención de Datos (Tool: 'ver_banda'):**\n- Requiere: Legajo (P18LEG), Año (yyyy) y Mes (mm).\n- Si falta el Año o el Mes, SOLICÍTALOS antes de continuar. No intentes adivinarlos.\n\n**C. Generación de Documento (Tool: 'descarga_pdf'):**\n- Usa el enlace del campo 'descarga' obtenido en el paso anterior.\n\n**Formato de respuesta asistencial:**\n1. **Empleado:** [Nombre completo] - **Legajo:** [P18LEG]\n2. **Documento:** [URL devuelta por 'descarga_pdf', sin paréntesis ni texto adicional]\n\n### 3. Consultas Analíticas de Nómina\nSi el usuario pregunta estadísticas, totales o resúmenes sobre la nómina. El usuario puede referirse a los registros como Empleados, Legajos o Agentes (son lo mismo).\n- Usa la herramienta 'analytics_nomina' generando la SQL adecuada.\n- OBLIGATORIO: toda query DEBE incluir el filtro WHERE IDSICA>0 AND IDSICA<7 (cargos activos).\n- Columnas disponibles en milegajo.qrydatosbi:\n  * VINCULO: tipo de vínculo laboral\n  * DEPENDENCIA: nombre de la dependencia/área\n  * CODEP: código de la dependencia\n- Solo genera queries SELECT. Nunca INSERT, UPDATE ni DELETE.\n- Formatea la respuesta como un resumen claro y legible.\n- Ejemplos de queries válidas:\n  * Total de empleados: SELECT COUNT(*) as total FROM milegajo.qrydatosbi WHERE IDSICA>0 AND IDSICA<7\n  * Por vínculo: SELECT VINCULO, COUNT(*) as cantidad FROM milegajo.qrydatosbi WHERE IDSICA>0 AND IDSICA<7 GROUP BY VINCULO ORDER BY cantidad DESC\n  * Por dependencia: SELECT DEPENDENCIA, COUNT(*) as cantidad FROM milegajo.qrydatosbi WHERE IDSICA>0 AND IDSICA<7 GROUP BY DEPENDENCIA ORDER BY cantidad DESC\n\n## REGLAS CRÍTICAS\n- Prohibido inventar datos o URLs.\n- Si el input es null o no se comprende, informa \"No se comprendió el mensaje, puede volver a enviarlo? Gracias!\"\n- Si una herramienta falla, informa el error técnico brevemente.\n- No detalles las inasistencias en el texto; el usuario debe verlas en el PDF.",
-          "returnIntermediateSteps": true
-        }
-      },
-      "id": "701d238d-0aac-4850-a7c6-c25b5eec0dc8",
-      "name": "AI Agent RRHH",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 1.7,
-      "position": [144, -96],
-      "alwaysOutputData": false,
-      "retryOnFail": true,
-      "waitBetweenTries": 5000
-    },
-    {
-      "parameters": {
-        "descriptionType": "manual",
-        "toolDescription": "Valida la autorizacion del telefono que esta consultando",
-        "operation": "executeQuery",
-        "query": "select telefono from milegajo.HAB_IA WHERE telefono={{ $('WhatsApp Trigger').item.json.messages[0].from }}",
-        "options": { "replaceEmptyStrings": true }
-      },
-      "type": "n8n-nodes-base.mySqlTool",
-      "typeVersion": 2.5,
-      "position": [160, 320],
-      "id": "cde4eecd-f197-4c2c-8d88-d4c3987b825d",
-      "name": "valida_tel",
-      "credentials": {
-        "mySql": {
-          "id": "ffXMWRtLEvjdrR6S",
-          "name": "MySQL account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "SELECT legajo as P18LEG, nombre, nro_doc from milegajo.migweba \nWHERE nombre like '%{{ $fromAI(\"nombre\") }}%' OR nro_doc = CAST('{{ $fromAI(\"DNI\") }}' AS UNSIGNED)",
-        "options": {}
-      },
-      "id": "cccf975c-3b85-4b02-b376-15903cac36f4",
-      "name": "Buscar_Empleado",
-      "type": "n8n-nodes-base.mySqlTool",
-      "position": [304, 320],
-      "typeVersion": 2.4,
-      "credentials": {
-        "mySql": {
-          "id": "ffXMWRtLEvjdrR6S",
-          "name": "MySQL account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "toolDescription": "Consulta la informacion asistencial de un legajo para un año y mes y genera un pdf con la informacion",
-        "url": "http://incidentes.newrolit.com/test-api/bandashorarias.php",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            { "name": "legajo", "value": "={{ $fromAI(\"P18LEG\") }}" },
-            { "name": "a", "value": "={{ $fromAI(\"year\") }}" },
-            { "name": "m", "value": "={{ $fromAI(\"month\") }}" }
-          ]
-        },
-        "options": {
-          "response": { "response": { "responseFormat": "json" } }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequestTool",
-      "typeVersion": 4.4,
-      "position": [432, 320],
-      "id": "42d96388-3f54-4457-b6dc-ff9f67797ee8",
-      "name": "ver_banda"
-    },
-    {
-      "parameters": {
-        "toolDescription": "Descargar el archivo pdf desde la url del campo descarga",
-        "url": "={{ $fromAI(\"descarga\") }}",
-        "options": {
-          "response": { "response": { "responseFormat": "file", "outputPropertyName": "file" } }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequestTool",
-      "typeVersion": 4.4,
-      "position": [544, 320],
-      "id": "52a95fb0-1e82-4e9b-a49a-157fdb05bcd7",
-      "name": "descarga_pdf"
-    },
-    {
-      "parameters": {
-        "descriptionType": "manual",
-        "toolDescription": "Ejecuta consultas analiticas de solo lectura sobre la nomina activa. Usarla cuando el usuario pregunte por totales, cantidades, estadisticas o resúmenes sobre empleados, legajos o agentes. SIEMPRE incluir en la query el filtro: WHERE IDSICA>0 AND IDSICA<7. Columnas disponibles en milegajo.qrydatosbi: VINCULO (tipo de vinculo laboral), DEPENDENCIA (nombre de la dependencia), CODEP (codigo de dependencia). Solo generar queries SELECT.",
-        "operation": "executeQuery",
-        "query": "{{ $fromAI(\"sql_query\", \"Query SELECT sobre milegajo.qrydatosbi. Obligatorio incluir WHERE IDSICA>0 AND IDSICA<7\") }}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.mySqlTool",
-      "typeVersion": 2.5,
-      "position": [304, 464],
-      "id": "b9f1d2e3-4c5a-6b7d-8e9f-0a1b2c3d4e5f",
-      "name": "analytics_nomina",
-      "credentials": {
-        "mySql": {
-          "id": "ffXMWRtLEvjdrR6S",
-          "name": "MySQL account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
-                "conditions": [
-                  {
-                    "leftValue": "={{ ($json.output.match(/(https?:\\/\\/\\S+)/) || [''])[1] }}",
-                    "rightValue": "",
-                    "operator": { "type": "string", "operation": "notEmpty", "singleValue": true },
-                    "id": "2f5727ed-7879-4941-95c0-095373b7b749"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": "Con URL"
-            },
-            {
-              "conditions": {
-                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
-                "conditions": [
-                  {
-                    "id": "6abdb15e-146d-4594-993c-de0f37559942",
-                    "leftValue": "={{ ($json.output.match(/(https?:\\/\\/\\S+)/) || [''])[1] }}",
-                    "rightValue": "",
-                    "operator": { "type": "string", "operation": "empty", "singleValue": true }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": "Sin URL"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [832, -128],
-      "id": "c679a82c-d0be-44e8-b55d-0ee43215e584",
-      "name": "Switch1"
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.output }}",
-                    "rightValue": "Consultar Nomina",
-                    "operator": { "type": "string", "operation": "notContains" },
-                    "id": "d0267e6d-790f-4d82-8074-37a529bc17f0"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": "Asistencia y Analytics"
-            },
-            {
-              "conditions": {
-                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
-                "conditions": [
-                  {
-                    "id": "19aec0af-d475-4498-ba1e-800c843544ed",
-                    "leftValue": "={{ $json.output }}",
-                    "rightValue": "Consultar Nomina",
-                    "operator": { "type": "string", "operation": "contains" }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": "Descarga Nomina"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [560, -112],
-      "id": "14b5e703-30f5-4a8b-a5d4-6deb4b601ee1",
-      "name": "Switch2"
     },
     {
       "parameters": {
@@ -357,7 +40,10 @@
       "name": "Enviar WhatsApp",
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1,
-      "position": [1120, -192],
+      "position": [
+        1120,
+        -192
+      ],
       "webhookId": "0daf123e-b75a-4850-a448-27cf9b4bff9d",
       "credentials": {
         "whatsAppApi": {
@@ -365,6 +51,314 @@
           "name": "WhatsApp account"
         }
       }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-pro",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        48,
+        80
+      ],
+      "id": "899e7b7c-eb58-43d9-90bc-e49ec21c81bc",
+      "name": "Google Gemini Chat Model",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ewbwIkGbI7o0JVYi",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT legajo as P18LEG, nombre, nro_doc from milegajo.migweba \nWHERE nombre like '%{{ $fromAI(\"nombre\") }}%' OR nro_doc = CAST('{{ $fromAI(\"DNI\") }}' AS UNSIGNED)",
+        "options": {}
+      },
+      "id": "cccf975c-3b85-4b02-b376-15903cac36f4",
+      "name": "Buscar_Empleado",
+      "type": "n8n-nodes-base.mySqlTool",
+      "position": [
+        304,
+        320
+      ],
+      "typeVersion": 2.4,
+      "credentials": {
+        "mySql": {
+          "id": "ffXMWRtLEvjdrR6S",
+          "name": "MySQL account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const jsonData = $json;\n\nif (jsonData && jsonData.messages && jsonData.messages.length > 0) {\n    const message = jsonData.messages[0];\n\n    let textMessage = null;\n    let audioMessage = null;\n\n    if (message.type === \"text\") {\n        textMessage = message.text.body;\n    } else if (message.type === \"audio\") {\n        audioMessage = message.audio.url || null;\n    }\n   \n    return [\n        {\n            json: {\n                \"text\": textMessage,\n                \"audio\": audioMessage\n            }\n        }\n    ];\n} else {\n    return [\n        {\n            json: {\n                \"text\": null,\n                \"audio\": null\n            }\n        }\n    ];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        -80
+      ],
+      "id": "f32a1968-9b75-459e-a887-93b411acdcb7",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "48a1db2f-5fd3-4e14-bd65-8ccf5c75f650"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": "Texto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "02ea7630-014c-4a2c-8775-342fe55e1ab7",
+                    "leftValue": "={{ $json.audio }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": "Audio"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -208,
+        -80
+      ],
+      "id": "41755456-13c2-4812-bfc2-47c6aab7e88c",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.audio }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -400,
+        176
+      ],
+      "id": "b3810107-8eac-4747-a6aa-2f1d7c086ba4",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xVvoVoyj2JNbqEJK",
+          "name": "Whatsapp Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        -192,
+        176
+      ],
+      "id": "5d5b0bf0-09c5-4488-bf81-1cd7e219b518",
+      "name": "Transcribe a recording",
+      "credentials": {
+        "openAiApi": {
+          "id": "uJ0zKiVb44r7l3Ak",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Consulta la informacion asistencial de un legajo para un año y mes y genera un pdf con la informacion",
+        "url": "http://incidentes.newrolit.com/test-api/bandashorarias.php",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "legajo",
+              "value": "={{ $fromAI(\"P18LEG\") }}"
+            },
+            {
+              "name": "a",
+              "value": "={{ $fromAI(\"year\") }}"
+            },
+            {
+              "name": "m",
+              "value": "={{ $fromAI(\"month\") }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        432,
+        320
+      ],
+      "id": "42d96388-3f54-4457-b6dc-ff9f67797ee8",
+      "name": "ver_banda"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        176,
+        80
+      ],
+      "id": "55a0bebb-19f0-449f-944a-7366e1a5356f",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Descargar el archivo pdf desde la url del campo descarga",
+        "url": "={{ $fromAI(\"descarga\") }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        544,
+        320
+      ],
+      "id": "52a95fb0-1e82-4e9b-a49a-157fdb05bcd7",
+      "name": "descarga_pdf"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ ($json.output.match(/(https?:\\/\\/\\S+)/) || [''])[1] }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "2f5727ed-7879-4941-95c0-095373b7b749"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": "Con URL"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "6abdb15e-146d-4594-993c-de0f37559942",
+                    "leftValue": "={{ ($json.output.match(/(https?:\\/\\/\\S+)/) || [''])[1] }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "empty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": "Sin URL"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        832,
+        -128
+      ],
+      "id": "c679a82c-d0be-44e8-b55d-0ee43215e584",
+      "name": "Switch1"
     },
     {
       "parameters": {
@@ -378,7 +372,10 @@
       "name": "Enviar WhatsApp1",
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1,
-      "position": [1120, -32],
+      "position": [
+        1120,
+        -32
+      ],
       "webhookId": "0daf123e-b75a-4850-a448-27cf9b4bff9d",
       "credentials": {
         "whatsAppApi": {
@@ -389,35 +386,28 @@
     },
     {
       "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Valida la autorizacion del telefono que esta consultando",
         "operation": "executeQuery",
-        "query": "SELECT * FROM milegajo.qrydatosbi WHERE IDSICA>0 AND IDSICA<7",
-        "options": {}
+        "query": "select telefono from milegajo.HAB_IA WHERE telefono={{ $('WhatsApp Trigger').item.json.messages[0].from }}",
+        "options": {
+          "replaceEmptyStrings": true
+        }
       },
-      "type": "n8n-nodes-base.mySql",
+      "type": "n8n-nodes-base.mySqlTool",
       "typeVersion": 2.5,
-      "position": [720, 64],
-      "id": "72d8c0bf-55c1-49ef-b24d-5f0571598ed3",
-      "name": "Execute a SQL query",
+      "position": [
+        160,
+        320
+      ],
+      "id": "cde4eecd-f197-4c2c-8d88-d4c3987b825d",
+      "name": "valida_tel",
       "credentials": {
         "mySql": {
           "id": "ffXMWRtLEvjdrR6S",
           "name": "MySQL account 2"
         }
       }
-    },
-    {
-      "parameters": {
-        "operation": "xlsx",
-        "options": {
-          "fileName": "Nomina_Habilitada",
-          "sheetName": "Nomina_Activa_Habilitada"
-        }
-      },
-      "type": "n8n-nodes-base.convertToFile",
-      "typeVersion": 1.1,
-      "position": [864, 64],
-      "id": "56301e34-83ec-454b-bb98-85967f1fff0a",
-      "name": "Convertir_Excel"
     },
     {
       "parameters": {
@@ -434,7 +424,10 @@
       "name": "Enviar WhatsApp2",
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1,
-      "position": [1120, 160],
+      "position": [
+        1120,
+        160
+      ],
       "webhookId": "0daf123e-b75a-4850-a448-27cf9b4bff9d",
       "credentials": {
         "whatsAppApi": {
@@ -442,69 +435,328 @@
           "name": "WhatsApp account"
         }
       }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "## ROL\nEres el Asistente de Recursos Humanos de SV. Tu objetivo es gestionar consultas de nómina e inasistencias de forma profesional y segura.\n\n## PROTOCOLO INICIAL OBLIGATORIO (PASO 0)\nAntes de procesar cualquier solicitud, ejecuta la herramienta 'valida_tel' usando el número del remitente.\n- Si NO devuelve datos: Responde únicamente: \"⚠️ Teléfono No Autorizado para este servicio\" y finaliza.\n- Si devuelve datos: Saluda con: \"Bienvenido al servicio de Consultas y soporte SV\" y ofrece los servicios: 1) Descargar Nómina, 2) Consultar Información Asistencial.\n\n## SERVICIOS\n\n### 1. Descarga de Nómina Habilitada\n- Si el usuario solicita su nómina o nómina habilitada:\n- ACCIÓN: No utilices herramientas de búsqueda.\n- RESPUESTA: Responde exactamente con el texto \"Consultar Nomina\". Esto disparará el proceso externo de Excel.\n\n### 2. Consulta de Información Asistencial\nPara este servicio, sigue este flujo lógico estrictamente:\n\n**A. Búsqueda de Empleado (Tool: 'Buscar_Empleado'):**\n1. Envía el Nombre o el DNI (si lo informa) siempre en MAYÚSCULAS, Si el usuario informa el Nombre pero no informa el DNI dejar el DNI=0 y \"NO SOLICITAR EL DNI\" y enviar el Nombre para ver las coincidencias y mostrarlas al usuario.\n2. Si hay múltiples coincidencias: Listalas y pide al usuario que especifique el legajo.\n3. Si no hay resultados: Reintenta invirtiendo el orden de Nombre y Apellido.\n4. Si sigue sin resultados: Intenta una variación fonética (ej. cambiar 'J' por 'G' o 'S' por 'Z').\n5. Si falla todo: Responde \"No se encontró al empleado\" y finaliza.\n\n**B. Obtención de Datos (Tool: 'ver_banda'):**\n- Requiere: Legajo (P18LEG), Año (yyyy) y Mes (mm).\n- Si falta el Año o el Mes en la consulta del usuario, SOLICÍTALOS antes de continuar. No intentes adivinarlos.\n\n**C. Generación de Documento (Tool: 'descarga_pdf'):**\n- Usa el enlace del campo 'descarga' obtenido en el paso anterior.\n\n## FORMATO DE RESPUESTA FINAL\nDebes entregar la información con este formato estricto:\n\n1. **Empleado:** [Nombre completo] - **Legajo:** [P18LEG]\n2. **Documento:** [Aquí pega ÚNICAMENTE la URL devuelta por 'descarga_pdf', sin paréntesis ni texto adicional]\n\n## REGLAS CRÍTICAS\n- Prohibido inventar datos o URLs.\n- Si el input es null o no se comprende, informa \"No se comprendió el mensaje, puede volver a enviarlo ? Gracias!\"\n- Si una herramienta falla, informa el error técnico brevemente.\n- No detalles las inasistencias en el texto; el usuario debe verlas en el PDF.",
+          "returnIntermediateSteps": true
+        }
+      },
+      "id": "701d238d-0aac-4850-a7c6-c25b5eec0dc8",
+      "name": "AI Agent RRHH",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        144,
+        -96
+      ],
+      "alwaysOutputData": false,
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {
+          "fileName": "Nomina_Habilitada",
+          "sheetName": "Nomina_Activa_Habilitada"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        864,
+        64
+      ],
+      "id": "56301e34-83ec-454b-bb98-85967f1fff0a",
+      "name": "Convertir_Excel"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "Consultar Nomina",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notContains"
+                    },
+                    "id": "d0267e6d-790f-4d82-8074-37a529bc17f0"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": "Asistencia"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "19aec0af-d475-4498-ba1e-800c843544ed",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "Consultar Nomina",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": "Nomina"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        560,
+        -112
+      ],
+      "id": "14b5e703-30f5-4a8b-a5d4-6deb4b601ee1",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM milegajo.qrydatosbi \nWHERE IDSICA>0 AND IDSICA<7",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        720,
+        64
+      ],
+      "id": "72d8c0bf-55c1-49ef-b24d-5f0571598ed3",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "mySql": {
+          "id": "ffXMWRtLEvjdrR6S",
+          "name": "MySQL account 2"
+        }
+      }
     }
   ],
   "pinData": {},
   "connections": {
     "WhatsApp Trigger": {
-      "main": [[{ "node": "Code in JavaScript", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent RRHH",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar_Empleado": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent RRHH",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Code in JavaScript": {
-      "main": [[{ "node": "Switch", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Switch": {
       "main": [
-        [{ "node": "AI Agent RRHH", "type": "main", "index": 0 }],
-        [{ "node": "HTTP Request1", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "AI Agent RRHH",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "HTTP Request1": {
-      "main": [[{ "node": "Transcribe a recording", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Transcribe a recording",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Transcribe a recording": {
-      "main": [[{ "node": "AI Agent RRHH", "type": "main", "index": 0 }]]
-    },
-    "Google Gemini Chat Model": {
-      "ai_languageModel": [[{ "node": "AI Agent RRHH", "type": "ai_languageModel", "index": 0 }]]
-    },
-    "Simple Memory": {
-      "ai_memory": [[{ "node": "AI Agent RRHH", "type": "ai_memory", "index": 0 }]]
-    },
-    "valida_tel": {
-      "ai_tool": [[{ "node": "AI Agent RRHH", "type": "ai_tool", "index": 0 }]]
-    },
-    "Buscar_Empleado": {
-      "ai_tool": [[{ "node": "AI Agent RRHH", "type": "ai_tool", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "AI Agent RRHH",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "ver_banda": {
-      "ai_tool": [[{ "node": "AI Agent RRHH", "type": "ai_tool", "index": 0 }]]
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent RRHH",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent RRHH",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
     },
     "descarga_pdf": {
-      "ai_tool": [[{ "node": "AI Agent RRHH", "type": "ai_tool", "index": 0 }]]
-    },
-    "analytics_nomina": {
-      "ai_tool": [[{ "node": "AI Agent RRHH", "type": "ai_tool", "index": 0 }]]
-    },
-    "AI Agent RRHH": {
-      "main": [[{ "node": "Switch2", "type": "main", "index": 0 }]]
-    },
-    "Switch2": {
-      "main": [
-        [{ "node": "Switch1", "type": "main", "index": 0 }],
-        [{ "node": "Execute a SQL query", "type": "main", "index": 0 }]
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent RRHH",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
       ]
     },
     "Switch1": {
       "main": [
-        [{ "node": "Enviar WhatsApp", "type": "main", "index": 0 }],
-        [{ "node": "Enviar WhatsApp1", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Enviar WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar WhatsApp1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "valida_tel": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent RRHH",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent RRHH": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convertir_Excel": {
+      "main": [
+        [
+          {
+            "node": "Enviar WhatsApp2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Execute a SQL query": {
-      "main": [[{ "node": "Convertir_Excel", "type": "main", "index": 0 }]]
-    },
-    "Convertir_Excel": {
-      "main": [[{ "node": "Enviar WhatsApp2", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Convertir_Excel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
