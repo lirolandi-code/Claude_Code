@@ -52,7 +52,7 @@
     <div class="mermaid">
 erDiagram
     Expedientes {
-        string numero PK
+        string numero FK
     }
     sv_usrps08 {
         string S08A01 FK
@@ -65,18 +65,18 @@ erDiagram
         string S10A01 PK
     }
 
-    Expedientes ||--o{ sv_usrps08 : "numero"
+    Expedientes }o--|| sv_usrps08 : "numero = S08U62"
     sv_usrps08 }o--|| sv_usrps09 : "S08A01 = S09A01"
-    sv_usrps08 }o--|| sv_usrps10 : "S08U62 = S10A01"
+    sv_usrps08 }o--|| sv_usrps10 : "S08A01 = S10A01"
     </div>
   </div>
 
   <div class="legend">
     <h3>Leyenda de relaciones</h3>
     <ul>
-      <li><strong>Expedientes → sv_usrps08</strong>: Campo <em>numero</em> relaciona con sv_usrps08</li>
-      <li><strong>sv_usrps08 → sv_usrps09</strong>: Campo <em>S08A01</em> referencia a <em>S09A01</em></li>
-      <li><strong>sv_usrps08 → sv_usrps10</strong>: Campo <em>S08U62</em> referencia a <em>S10A01</em></li>
+      <li><strong>Expedientes → sv_usrps08</strong>: <em>numero</em> referencia a <em>S08U62</em></li>
+      <li><strong>sv_usrps08 → sv_usrps09</strong>: <em>S08A01</em> referencia a <em>S09A01</em></li>
+      <li><strong>sv_usrps08 → sv_usrps10</strong>: <em>S08A01</em> referencia a <em>S10A01</em></li>
     </ul>
     <p style="margin-bottom:0;"><strong>|| — o{</strong> = uno a muchos &nbsp;|&nbsp; <strong>PK</strong> = Clave primaria &nbsp;|&nbsp; <strong>FK</strong> = Clave foránea</p>
   </div>
