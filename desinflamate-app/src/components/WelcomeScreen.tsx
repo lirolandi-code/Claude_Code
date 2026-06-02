@@ -41,6 +41,12 @@ export default function WelcomeScreen({ onStart }: Props) {
           </div>
         </div>
 
+        <button className="btn-primary btn-large" onClick={onStart}>
+          Crear Mi Plan Personalizado
+          <span className="btn-arrow">→</span>
+        </button>
+        <p className="welcome-disclaimer">Gratis · 3 minutos · Sin registro</p>
+
         <div className="symptoms-preview">
           <p className="symptoms-title">¿Experimentas alguno de estos síntomas?</p>
           <div className="symptoms-list">
@@ -50,12 +56,6 @@ export default function WelcomeScreen({ onStart }: Props) {
           </div>
           <p className="symptoms-hint">La inflamación crónica puede ser la causa. Tu plan personalizado comienza aquí.</p>
         </div>
-
-        <button className="btn-primary btn-large" onClick={onStart}>
-          Crear Mi Plan Personalizado
-          <span className="btn-arrow">→</span>
-        </button>
-        <p className="welcome-disclaimer">Gratis · 3 minutos · Sin registro</p>
       </div>
     </div>
   );
