@@ -14,8 +14,11 @@ function obtenerConexion()
     if ($pdo === null) {
         $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME;
         $opciones = array(
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            // No se usa PDO::ATTR_DEFAULT_FETCH_MODE: en algunos builds
+            // de PDO muy antiguos/recortados esa constante no está
+            // definida. En vez de fijar un modo por defecto, cada
+            // consulta pide PDO::FETCH_ASSOC explícitamente.
             // El parámetro "charset" en el DSN recién se soportó en
             // PHP 5.3.6; para versiones anteriores hay que fijar el
             // charset con un comando de inicio de sesión.
@@ -110,7 +113,7 @@ function obtenerDependencias($pdo)
         CAMPO_CODIGO
     );
     $stmt = $pdo->query($sql);
-    return $stmt->fetchAll();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 /**
@@ -127,7 +130,7 @@ function obtenerDependenciaPorCodigo($pdo, $codigo)
     );
     $stmt = $pdo->prepare($sql);
     $stmt->execute(array($codigo));
-    $fila = $stmt->fetch();
+    $fila = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($fila) {
         return $fila;
     }
