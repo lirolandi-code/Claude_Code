@@ -104,10 +104,31 @@ se calcula siempre a partir del propio código de 10 posiciones.
   (`construirArbol()`) y lo dibuja como una lista `<ul>/<li>` anidada;
   el efecto de organigrama (cajas unidas por líneas) se logra con CSS puro
   en `assets/style.css`, sin JavaScript ni librerías externas.
-- Cada nodo es un enlace `detalle.php?codigo=XXXXXXXXXX`.
+- Cada raviol tiene dos zonas: el cuerpo (código + descripción) enlaza a
+  `detalle.php?codigo=XXXXXXXXXX`, y el botón inferior "Ver ficha →" enlaza
+  a `URL_DETALLE_EXTERNA` (configurable en `config.php`) agregándole
+  `?Dep=XXXXXXXXXX` (o `&Dep=...` si esa URL ya trae parámetros).
 - **`detalle.php`** valida el código recibido, busca la dependencia, calcula
   su nivel y su padre (mostrando la descripción del padre si está cargado
   en la tabla) y lista las dependencias que reportan directamente a ella.
+
+## Filtrar por prefijo de código
+
+`PREFIJO_CODIGO_FILTRO` en `config.php` limita qué dependencias se
+muestran/aceptan según el primer carácter (o caracteres) del código —
+por ejemplo `'A'` para mostrar solo lo que cuelga del ministerio "A".
+Se aplica tanto al listado del organigrama como a `detalle.php` (un
+código fuera del prefijo da 404, aunque exista en la tabla). Dejar la
+constante en `''` para no filtrar nada.
+
+## Árbol plegable (niveles ya desplegados)
+
+Los nodos con hijos se dibujan con `<details>/<summary>` nativos de
+HTML: no hace falta JavaScript para plegar/desplegar una rama, alcanza
+con hacer clic en el circulito +/- debajo de cada raviol. Al entrar a
+`index.php`, los niveles hasta `NIVELES_EXPANDIDOS_POR_DEFECTO` (en
+`config.php`, por defecto `4`) arrancan desplegados; los niveles más
+profundos arrancan plegados y se despliegan con un clic.
 
 ## Seguridad
 

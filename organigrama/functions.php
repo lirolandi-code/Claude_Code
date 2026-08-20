@@ -101,26 +101,49 @@ function codigoPadre($codigo)
 }
 
 /**
- * Trae todas las dependencias ordenadas por código.
+ * Verdadero si $codigo cumple con PREFIJO_CODIGO_FILTRO (o si el filtro
+ * está desactivado, es decir, la constante está vacía).
+ */
+function codigoPasaFiltro($codigo)
+{
+    if (PREFIJO_CODIGO_FILTRO === '') {
+        return true;
+    }
+    return strpos($codigo, PREFIJO_CODIGO_FILTRO) === 0;
+}
+
+/**
+ * Trae todas las dependencias ordenadas por código, limitadas a las que
+ * empiezan con PREFIJO_CODIGO_FILTRO (si está configurado).
  */
 function obtenerDependencias($pdo)
 {
     $sql = sprintf(
-        'SELECT %s AS codigo_dependencia, %s AS descripcion FROM %s ORDER BY %s ASC',
+        'SELECT %s AS codigo_dependencia, %s AS descripcion FROM %s',
         CAMPO_CODIGO,
         CAMPO_DESCRIPCION,
-        TABLA_DEPENDENCIAS,
-        CAMPO_CODIGO
+        TABLA_DEPENDENCIAS
     );
-    $stmt = $pdo->query($sql);
+    $parametros = array();
+    if (PREFIJO_CODIGO_FILTRO !== '') {
+        $sql .= sprintf(' WHERE %s LIKE ?', CAMPO_CODIGO);
+        $parametros[] = PREFIJO_CODIGO_FILTRO . '%';
+    }
+    $sql .= sprintf(' ORDER BY %s ASC', CAMPO_CODIGO);
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($parametros);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 /**
- * Busca una dependencia puntual por código.
+ * Busca una dependencia puntual por código (respeta PREFIJO_CODIGO_FILTRO).
  */
 function obtenerDependenciaPorCodigo($pdo, $codigo)
 {
+    if (!codigoPasaFiltro($codigo)) {
+        return null;
+    }
     $sql = sprintf(
         'SELECT %s AS codigo_dependencia, %s AS descripcion FROM %s WHERE %s = ?',
         CAMPO_CODIGO,
@@ -185,8 +208,42 @@ function obtenerHijosDirectos($todasLasDependencias, $codigo)
 }
 
 /**
+ * Arma la URL del botón externo de un nodo, agregando "Dep=<codigo>" ya
+ * sea con "?" o con "&" según si URL_DETALLE_EXTERNA ya trae parámetros.
+ */
+function urlDetalleExterna($codigo)
+{
+    $separador = strpos(URL_DETALLE_EXTERNA, '?') === false ? '?' : '&';
+    return URL_DETALLE_EXTERNA . $separador . 'Dep=' . urlencode($codigo);
+}
+
+/**
+ * Imprime la "caja" de un nodo: el cuerpo (código + descripción, enlaza
+ * al detalle interno) y el botón hacia la URL externa configurable.
+ */
+function renderizarNodo($nodo)
+{
+    printf(
+        '<span class="nodo nivel-%d">' .
+            '<a class="nodo-cuerpo" href="detalle.php?codigo=%s" title="Ver detalle">' .
+                '<span class="codigo">%s</span><span class="descripcion">%s</span>' .
+            '</a>' .
+            '<a class="nodo-boton" href="%s" target="_blank" rel="noopener" title="Ver información relacionada">Ver ficha &rarr;</a>' .
+        '</span>',
+        (int) $nodo['nivel'],
+        urlencode($nodo['codigo']),
+        htmlspecialchars($nodo['codigo'], ENT_QUOTES, 'UTF-8'),
+        htmlspecialchars($nodo['descripcion'], ENT_QUOTES, 'UTF-8'),
+        htmlspecialchars(urlDetalleExterna($nodo['codigo']), ENT_QUOTES, 'UTF-8')
+    );
+}
+
+/**
  * Imprime recursivamente el árbol como lista <ul>/<li> anidada, base del
- * organigrama visual (los conectores se dibujan con CSS).
+ * organigrama visual (los conectores se dibujan con CSS). Los nodos con
+ * hijos se envuelven en <details>/<summary> (sin JavaScript) para poder
+ * plegar/desplegar sus ramas; los niveles hasta
+ * NIVELES_EXPANDIDOS_POR_DEFECTO arrancan desplegados.
  */
 function renderizarArbol($nodos)
 {
@@ -196,17 +253,17 @@ function renderizarArbol($nodos)
     echo '<ul class="organigrama">';
     foreach ($nodos as $nodo) {
         echo '<li>';
-        printf(
-            '<a class="nodo nivel-%d" href="detalle.php?codigo=%s" title="Ver detalle">' .
-                '<span class="codigo">%s</span><span class="descripcion">%s</span>' .
-                '</a>',
-            (int) $nodo['nivel'],
-            urlencode($nodo['codigo']),
-            htmlspecialchars($nodo['codigo'], ENT_QUOTES, 'UTF-8'),
-            htmlspecialchars($nodo['descripcion'], ENT_QUOTES, 'UTF-8')
-        );
         if (!empty($nodo['hijos'])) {
+            $abierto = $nodo['nivel'] <= NIVELES_EXPANDIDOS_POR_DEFECTO ? ' open' : '';
+            echo '<details class="rama"' . $abierto . '>';
+            echo '<summary>';
+            renderizarNodo($nodo);
+            echo '<span class="toggle-icon" aria-hidden="true"></span>';
+            echo '</summary>';
             renderizarArbol($nodo['hijos']);
+            echo '</details>';
+        } else {
+            renderizarNodo($nodo);
         }
         echo '</li>';
     }

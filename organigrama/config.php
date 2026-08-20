@@ -15,6 +15,22 @@ define('TABLA_DEPENDENCIAS', 'sv_dpnpdat0');
 define('CAMPO_CODIGO', 'DPNDEP');
 define('CAMPO_DESCRIPCION', 'DPNDES');
 
+// Solo se muestran/aceptan dependencias cuyo código empiece con este
+// prefijo (por ejemplo, todas las que dependen del ministerio "A").
+// Dejar en '' (cadena vacía) para no filtrar y mostrar todos los códigos.
+define('PREFIJO_CODIGO_FILTRO', 'A');
+
+// Cantidad de niveles que se muestran ya desplegados al entrar al
+// organigrama (los niveles más profundos arrancan colapsados y se
+// despliegan haciendo clic en el circulito +/- debajo de cada raviol).
+define('NIVELES_EXPANDIDOS_POR_DEFECTO', 4);
+
+// URL (propia o de otro sistema) a la que apunta el botón adicional de
+// cada raviol. Se le agrega automáticamente "?Dep=<codigo>" (o
+// "&Dep=<codigo>" si la URL ya trae parámetros) para que esa página
+// sepa de qué dependencia mostrar información.
+define('URL_DETALLE_EXTERNA', 'https://tudominio.com/ficha-dependencia.php');
+
 // --- Estructura del código de dependencia (10 posiciones) --------------
 // El código se compone de "segmentos" concatenados; cada segmento
 // representa un nivel jerárquico y su cantidad de caracteres.

@@ -118,22 +118,27 @@ main { padding: 32px; }
 .nodo {
     display: inline-flex;
     flex-direction: column;
-    gap: 2px;
     min-width: 170px;
     max-width: 220px;
-    padding: 10px 14px;
     background: var(--color-fondo-nodo);
     border: 2px solid var(--color-borde);
     border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20, 30, 50, 0.12);
+    transition: box-shadow .15s;
+}
+.nodo:hover { box-shadow: 0 3px 8px rgba(20, 30, 50, 0.2); }
+
+.nodo-cuerpo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 14px;
     text-decoration: none;
     color: var(--color-texto);
-    box-shadow: 0 1px 3px rgba(20, 30, 50, 0.12);
-    transition: background-color .15s, box-shadow .15s;
+    transition: background-color .15s;
 }
-.nodo:hover {
-    background: var(--color-hover);
-    box-shadow: 0 3px 8px rgba(20, 30, 50, 0.2);
-}
+.nodo-cuerpo:hover { background: var(--color-hover); }
 .nodo .codigo {
     font-family: "Consolas", monospace;
     font-size: .72rem;
@@ -146,12 +151,63 @@ main { padding: 32px; }
     line-height: 1.25;
 }
 
+.nodo-boton {
+    padding: 5px 14px;
+    text-align: center;
+    font-size: .72rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--color-nivel-2);
+    background: #f3f6fb;
+    border-top: 1px solid #e1e5ec;
+    transition: background-color .15s;
+}
+.nodo-boton:hover { background: var(--color-hover); }
+
 .nodo.nivel-1 { border-color: var(--color-nivel-1); }
 .nodo.nivel-2 { border-color: var(--color-nivel-2); }
 .nodo.nivel-3 { border-color: var(--color-nivel-3); }
 .nodo.nivel-4 { border-color: var(--color-nivel-4); }
 .nodo.nivel-5,
 .nodo.nivel-6 { border-color: var(--color-nivel-5); }
+
+/* Ramas plegables: <details>/<summary> nativos, sin JavaScript. */
+.organigrama details.rama {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.organigrama details.rama > summary {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    list-style: none;
+    cursor: pointer;
+}
+.organigrama details.rama > summary::-webkit-details-marker { display: none; }
+.organigrama details.rama > summary::marker { content: ""; }
+
+.toggle-icon {
+    width: 18px;
+    height: 18px;
+    margin-top: 6px;
+    border: 1px solid var(--color-borde);
+    border-radius: 50%;
+    background: #fff;
+    color: var(--color-codigo);
+    font-size: 12px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.toggle-icon::before { content: "\2212"; } /* − */
+details.rama:not([open]) > summary .toggle-icon::before { content: "+"; }
+.organigrama details.rama > summary:hover .toggle-icon {
+    background: var(--color-hover);
+    border-color: var(--color-nivel-2);
+    color: var(--color-nivel-2);
+}
 
 /* ---------- Página de detalle ---------- */
 
