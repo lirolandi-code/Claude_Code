@@ -59,14 +59,16 @@ esa idea con la constante `SEGMENT_LENGTHS` en `config.php`:
 define('SEGMENT_LENGTHS', [1, 1, 2, 2, 2, 2]); // suma = 10
 ```
 
-Con ese reparto:
+Con ese reparto, validado contra un caso real de 6 niveles:
 
-| Código        | Segmentos           | Nivel | Depende de   |
-|---------------|---------------------|-------|--------------|
-| A000000000    | A·0·00·00·00·00     | 1     | —            |
-| A100000000    | A·1·00·00·00·00     | 2     | A000000000   |
-| A110000000    | A·1·10·00·00·00     | 3     | A100000000   |
-| A110100000    | A·1·10·10·00·00     | 4     | A110000000   |
+| Código        | Segmentos             | Nivel | Dependencia                                    | Depende de   |
+|---------------|------------------------|-------|-------------------------------------------------|--------------|
+| A000000000    | A·0·00·00·00·00        | 1     | MINISTERIO DE ECONOMIA                          | —            |
+| A100000000    | A·1·00·00·00·00        | 2     | SECRETARIA DE POLITICA ECONOMICA                | A000000000   |
+| A102000000    | A·1·02·00·00·00        | 3     | SUBSECRETARIA DE PROGRAMACION MACROECONOMICA    | A100000000   |
+| A102020000    | A·1·02·02·00·00        | 4     | DIRECCION NACIONAL DE POLITICA MACROECONOMICA   | A102000000   |
+| A102020100    | A·1·02·02·01·00        | 5     | DIRECCION DE ANALISIS DE ACTIVIDAD ECONOMICA... | A102020000   |
+| A102020101    | A·1·02·02·01·01        | 6     | COORDINACION AREA ECONOMIA GENERAL              | A102020100   |
 
 Regla general:
 
