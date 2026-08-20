@@ -151,17 +151,38 @@ function codigoEsVisible($pdo, $codigo)
 }
 
 /**
+ * Ancestro (o el propio código) de nivel <= NIVEL_CORTE_ACTIVAS: la
+ * "unidad de decisión" que se usa para saber si mostrar una rama entera.
+ * Sube por la cadena de códigos padre mientras el nivel sea mayor al de
+ * corte y el ancestro exista realmente en $indice.
+ */
+function grupoDeCorte($codigo, $indice)
+{
+    $actual = $codigo;
+    while (nivelDeCodigo($actual) > NIVEL_CORTE_ACTIVAS) {
+        $padre = codigoPadre($actual);
+        if ($padre === null || !isset($indice[$padre])) {
+            break;
+        }
+        $actual = $padre;
+    }
+    return $actual;
+}
+
+/**
  * Trae todas las dependencias ordenadas por código, limitadas a las que
  * empiezan con PREFIJO_CODIGO_FILTRO (si está configurado). Si
- * FILTRAR_SOLO_ACTIVAS está activo, se queda con las que tienen personal
- * activo asignado MÁS toda su cadena de ancestros reales (aunque esos
- * niveles intermedios -secretarías, subsecretarías, direcciones- no
- * tengan personal propio): así se conserva la profundidad real del
- * organigrama en vez de "saltear" los niveles administrativos sin
- * personal directo. Cada fila devuelta trae 'activa' (true/false) para
- * poder distinguir en el render los nodos puramente estructurales.
- * Se cachea en memoria: dentro de un mismo request se pide varias veces
- * (organigrama, detalle, hijos) y es siempre la misma consulta.
+ * FILTRAR_SOLO_ACTIVAS está activo, se agrupan por su "grupo de corte"
+ * (ver NIVEL_CORTE_ACTIVAS) y se muestran completos los grupos que
+ * tienen personal activo en cualquier punto de su estructura -aunque
+ * los niveles intermedios (secretarías, subsecretarías) no tengan
+ * personal propio-, más la cadena de ancestros de esos grupos hasta la
+ * raíz para que el árbol llegue conectado. Los grupos sin ninguna
+ * actividad no se muestran. Cada fila devuelta trae 'activa'
+ * (true/false) para poder distinguir en el render los nodos puramente
+ * estructurales. Se cachea en memoria: dentro de un mismo request se
+ * pide varias veces (organigrama, detalle, hijos) y es siempre la
+ * misma consulta.
  */
 function obtenerDependencias($pdo)
 {
@@ -193,15 +214,28 @@ function obtenerDependencias($pdo)
     }
 
     $indice = indiceDeDependencias($todas);
-    $activos = array_flip(obtenerCodigosActivos($pdo));
+    $activosLista = obtenerCodigosActivos($pdo);
+    $activos = array_flip($activosLista);
+
+    $gruposActivos = array();
+    foreach ($activosLista as $codigo) {
+        if (isset($indice[$codigo])) {
+            $gruposActivos[grupoDeCorte($codigo, $indice)] = true;
+        }
+    }
 
     $visibles = array();
-    foreach ($activos as $codigo => $ignorar) {
-        if (!isset($indice[$codigo])) {
-            continue; // el código activo no está en la tabla (o no pasa el prefijo)
+    foreach ($todas as $dep) {
+        $codigo = $dep['codigo_dependencia'];
+        if (isset($gruposActivos[grupoDeCorte($codigo, $indice)])) {
+            $visibles[$codigo] = true;
         }
-        $actual = $codigo;
-        while ($actual !== null && !isset($visibles[$actual])) {
+    }
+    // Conecta cada grupo activo hasta la raíz (ministerio), por si el
+    // nivel de corte no es el nivel 1.
+    foreach (array_keys($gruposActivos) as $grupo) {
+        $actual = codigoPadre($grupo);
+        while ($actual !== null && isset($indice[$actual]) && !isset($visibles[$actual])) {
             $visibles[$actual] = true;
             $actual = codigoPadre($actual);
         }
@@ -272,11 +306,41 @@ function ancestroVisible($codigo, $indice)
 }
 
 /**
+ * Compara dos nodos del árbol (con clave 'nivel'/'codigo') por nivel
+ * jerárquico y, dentro del mismo nivel, por código. Así una subsecretaría
+ * (nivel 3) queda antes que una dirección (nivel 4) aunque ambas sean
+ * hijas directas de la misma secretaría.
+ */
+function compararNodosPorNivelYCodigo($a, $b)
+{
+    if ($a['nivel'] !== $b['nivel']) {
+        return $a['nivel'] < $b['nivel'] ? -1 : 1;
+    }
+    return strcmp($a['codigo'], $b['codigo']);
+}
+
+/**
+ * Igual que compararNodosPorNivelYCodigo() pero para filas planas de la
+ * base (clave 'codigo_dependencia'), como las que devuelve
+ * obtenerHijosDirectos().
+ */
+function compararDependenciasPorNivelYCodigo($a, $b)
+{
+    $nivelA = nivelDeCodigo($a['codigo_dependencia']);
+    $nivelB = nivelDeCodigo($b['codigo_dependencia']);
+    if ($nivelA !== $nivelB) {
+        return $nivelA < $nivelB ? -1 : 1;
+    }
+    return strcmp($a['codigo_dependencia'], $b['codigo_dependencia']);
+}
+
+/**
  * Construye el árbol jerárquico a partir del listado plano de dependencias.
  * Devuelve un arreglo con los nodos raíz; cada nodo tiene 'hijos' con sus
- * descendientes directos. Si el ancestro directo de un código no está en
- * la lista (nivel intermedio sin personal activo, por ejemplo), el nodo
- * se cuelga del ancestro visible más cercano en vez de quedar como raíz.
+ * descendientes directos, ordenados por nivel jerárquico y código. Si el
+ * ancestro directo de un código no está en la lista (nivel intermedio sin
+ * personal activo, por ejemplo), el nodo se cuelga del ancestro visible
+ * más cercano en vez de quedar como raíz.
  */
 function construirArbol($dependencias)
 {
@@ -306,6 +370,14 @@ function construirArbol($dependencias)
     }
     unset($nodo);
 
+    foreach ($nodos as $codigo => &$nodo) {
+        if (!empty($nodo['hijos'])) {
+            usort($nodo['hijos'], 'compararNodosPorNivelYCodigo');
+        }
+    }
+    unset($nodo);
+    usort($raices, 'compararNodosPorNivelYCodigo');
+
     return $raices;
 }
 
@@ -326,6 +398,7 @@ function obtenerHijosDirectos($todasLasDependencias, $codigo, $indice = null)
             $hijos[] = $d;
         }
     }
+    usort($hijos, 'compararDependenciasPorNivelYCodigo');
     return $hijos;
 }
 

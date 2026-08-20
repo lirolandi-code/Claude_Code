@@ -138,20 +138,29 @@ organigrama a las dependencias cuyo código aparece en el resultado de
 constante en `false` para desactivar el filtro y mostrar todas las
 dependencias, sin tocar nada más.
 
-Si un nivel intermedio (ministerio, secretaría, subsecretaría, etc.) no
-tiene personal activo asignado en forma directa pero sí tiene algún
-descendiente con personal activo, esa dependencia se sigue mostrando de
-todas formas — como nodo "estructural", con borde punteado y algo más
-tenue (clase CSS `sin-personal`) para distinguirla de las unidades con
-gente asignada — en vez de saltearla. Así se conserva la profundidad real
-del organigrama (nivel 3, 4, etc.) incluso cuando la gerencia intermedia
-no tiene personal cargado directamente. Solo desaparecen del todo las
-ramas que no tienen ningún personal activo en ningún nivel por debajo.
-Si el ancestro directo de una dependencia igual llegara a faltar (por
-ejemplo, esa fila directamente no existe en la tabla), se cuelga del
-ancestro visible más cercano en vez de quedar como si fuera de nivel 1;
-la página de detalle usa el mismo criterio para "Depende de" y para el
-listado de dependencias subordinadas.
+El filtro no decide dependencia por dependencia, sino por **grupos**:
+`NIVEL_CORTE_ACTIVAS` (por defecto `2`, es decir la Secretaría) define
+qué nivel se usa como "unidad de decisión". Cada dependencia se agrupa
+bajo su ancestro de ese nivel; si ESE grupo tiene personal activo en
+cualquier punto de su estructura (en cualquier subsecretaría, dirección,
+coordinación, etc.), se muestra el grupo **completo** — incluidos los
+niveles intermedios que no tengan personal propio, marcados con borde
+punteado y algo más tenues (clase CSS `sin-personal`) para distinguirlos
+de las unidades con gente asignada. Solo desaparecen del todo los grupos
+que no tienen absolutamente ningún personal activo en ninguno de sus
+niveles. Esto evita que, por ejemplo, una Subsecretaría sin personal
+directo "desaparezca" del árbol aunque otra Dirección de la misma
+Secretaría sí tenga gente asignada — antes se mostraba solo el camino
+mínimo hasta cada código activo, lo que podía saltear niveles enteros de
+la estructura real.
+
+Si el ancestro directo de una dependencia igual llegara a faltar por
+completo (por ejemplo, esa fila directamente no existe en la tabla), se
+cuelga del ancestro visible más cercano en vez de quedar como si fuera
+de nivel 1; la página de detalle usa el mismo criterio para "Depende de"
+y para el listado de dependencias subordinadas, que además se muestra
+ordenado por nivel jerárquico (las subsecretarías antes que las
+direcciones, por ejemplo) y no por orden alfabético/numérico de código.
 
 ## Seguridad
 
