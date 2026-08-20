@@ -92,7 +92,14 @@ function codigoPadre(string $codigo): ?string
  */
 function obtenerDependencias(PDO $pdo): array
 {
-    $stmt = $pdo->query('SELECT codigo_dependencia, descripcion FROM dependencias ORDER BY codigo_dependencia ASC');
+    $sql = sprintf(
+        'SELECT %s AS codigo_dependencia, %s AS descripcion FROM %s ORDER BY %s ASC',
+        CAMPO_CODIGO,
+        CAMPO_DESCRIPCION,
+        TABLA_DEPENDENCIAS,
+        CAMPO_CODIGO
+    );
+    $stmt = $pdo->query($sql);
     return $stmt->fetchAll();
 }
 
@@ -101,7 +108,14 @@ function obtenerDependencias(PDO $pdo): array
  */
 function obtenerDependenciaPorCodigo(PDO $pdo, string $codigo): ?array
 {
-    $stmt = $pdo->prepare('SELECT codigo_dependencia, descripcion FROM dependencias WHERE codigo_dependencia = ?');
+    $sql = sprintf(
+        'SELECT %s AS codigo_dependencia, %s AS descripcion FROM %s WHERE %s = ?',
+        CAMPO_CODIGO,
+        CAMPO_DESCRIPCION,
+        TABLA_DEPENDENCIAS,
+        CAMPO_CODIGO
+    );
+    $stmt = $pdo->prepare($sql);
     $stmt->execute([$codigo]);
     $fila = $stmt->fetch();
     return $fila ?: null;

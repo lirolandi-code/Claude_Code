@@ -3,10 +3,15 @@ declare(strict_types=1);
 
 // --- Conexión a la base de datos --------------------------------------
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'organigrama');
+define('DB_NAME', 'milegajo');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
+
+// --- Tabla y campos de dependencias -------------------------------------
+define('TABLA_DEPENDENCIAS', 'sv_dpnpdat0');
+define('CAMPO_CODIGO', 'DPNDEP');
+define('CAMPO_DESCRIPCION', 'DPNDES');
 
 // --- Estructura del código de dependencia (10 posiciones) --------------
 // El código se compone de "segmentos" concatenados; cada segmento

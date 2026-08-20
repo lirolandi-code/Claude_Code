@@ -4,6 +4,9 @@ Genera gráficamente el organigrama de una empresa a partir de una tabla
 MySQL con un código de dependencia jerárquico de 10 posiciones, y permite
 hacer clic en cada "raviol" (nodo) para ver el detalle de esa dependencia.
 
+Base de datos: `milegajo` · Tabla: `sv_dpnpdat0` · Campos: `DPNDEP`
+(código de dependencia, VARCHAR(10)) y `DPNDES` (descripción, VARCHAR(120)).
+
 ## Estructura de archivos
 
 ```
@@ -28,11 +31,14 @@ organigrama/
    ```bash
    mysql -u root -p < sql/schema.sql
    ```
-   (el script crea la tabla `dependencias` con `codigo_dependencia VARCHAR(10)`
-   y `descripcion VARCHAR(120)`, más algunos registros de ejemplo).
+   (el script crea la base `milegajo` y la tabla `sv_dpnpdat0` con
+   `DPNDEP VARCHAR(10)` y `DPNDES VARCHAR(120)`, más algunos registros
+   de ejemplo).
 
 2. Edite `config.php` con las credenciales reales de su MySQL
-   (`DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`).
+   (`DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`). Si la base ya existe con
+   otro nombre de tabla o de campos, ajuste `TABLA_DEPENDENCIAS`,
+   `CAMPO_CODIGO` y `CAMPO_DESCRIPCION` en el mismo archivo.
 
 3. Copie la carpeta `organigrama/` al document root de su servidor, o
    pruébelo rápido con el servidor embebido de PHP:
