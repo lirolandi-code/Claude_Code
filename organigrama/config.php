@@ -20,10 +20,13 @@ define('CAMPO_DESCRIPCION', 'DPNDES');
 // Dejar en '' (cadena vacía) para no filtrar y mostrar todos los códigos.
 define('PREFIJO_CODIGO_FILTRO', 'A');
 
-// Cantidad de niveles que se muestran ya desplegados al entrar al
-// organigrama (los niveles más profundos arrancan colapsados y se
-// despliegan haciendo clic en el circulito +/- debajo de cada raviol).
-define('NIVELES_EXPANDIDOS_POR_DEFECTO', 4);
+// Cantidad de niveles (contando desde la raíz) que se muestran ya
+// desplegados al entrar al organigrama; se cuenta la profundidad real
+// en el árbol dibujado, no el nivel numérico del código. Los niveles
+// más profundos arrancan colapsados: cada clic en el circulito +/-
+// despliega solo ESE nodo (un nivel más), para poder navegar de a poco
+// un organigrama grande en vez de desplegarlo entero de una.
+define('NIVELES_EXPANDIDOS_POR_DEFECTO', 2);
 
 // URL (propia o de otro sistema) a la que apunta el botón adicional de
 // cada raviol. Se le agrega automáticamente "?Dep=<codigo>" (o

@@ -11,12 +11,13 @@ Base de datos: `milegajo` · Tabla: `sv_dpnpdat0` · Campos: `DPNDEP`
 
 ```
 organigrama/
-├── config.php        Datos de conexión a MySQL y definición del esquema del código
-├── functions.php      Lógica: nivel, código padre, armado del árbol, render
-├── index.php           Página principal: dibuja el organigrama
-├── detalle.php          Página de detalle de una dependencia
-├── assets/style.css   Estilos del organigrama (cajas + líneas conectoras)
-└── sql/schema.sql     Script para crear la tabla y cargar datos de ejemplo
+├── config.php              Datos de conexión a MySQL y definición del esquema del código
+├── functions.php            Lógica: nivel, código padre, armado del árbol, render
+├── index.php                 Página principal: dibuja el organigrama
+├── detalle.php                Página de detalle de una dependencia
+├── assets/style.css        Estilos del organigrama (cajas + líneas conectoras)
+├── assets/organigrama.js  Controles de zoom / "Ver todo" (sin dependencias)
+└── sql/schema.sql          Script para crear la tabla y cargar datos de ejemplo
 ```
 
 ## Requisitos
@@ -121,14 +122,36 @@ Se aplica tanto al listado del organigrama como a `detalle.php` (un
 código fuera del prefijo da 404, aunque exista en la tabla). Dejar la
 constante en `''` para no filtrar nada.
 
-## Árbol plegable (niveles ya desplegados)
+## Árbol plegable (niveles ya desplegados) y navegación de a un nivel
 
 Los nodos con hijos se dibujan con `<details>/<summary>` nativos de
 HTML: no hace falta JavaScript para plegar/desplegar una rama, alcanza
 con hacer clic en el circulito +/- debajo de cada raviol. Al entrar a
 `index.php`, los niveles hasta `NIVELES_EXPANDIDOS_POR_DEFECTO` (en
-`config.php`, por defecto `4`) arrancan desplegados; los niveles más
-profundos arrancan plegados y se despliegan con un clic.
+`config.php`, por defecto `2`) arrancan desplegados; los niveles más
+profundos arrancan plegados. Como cada nodo controla solo SU propia
+rama, desplegar uno revela nada más que sus hijos directos (un nivel
+más) — el resto de sus descendientes siguen plegados hasta que se hace
+clic de nuevo más abajo. Así se puede navegar un organigrama grande de a
+poco, en vez de desplegarlo entero de una.
+
+Este contador usa la **profundidad real en el árbol dibujado** (raíz =
+1), no el nivel numérico calculado a partir del código: normalmente
+coinciden, pero si algún código "salta" niveles en su numeración (por
+ejemplo, una secretaría con personal cargado como si fuera de nivel 4)
+igual se despliega/colorea según dónde cuelga de verdad, no según cómo
+esté numerado.
+
+## Ver el organigrama completo (zoom / "Ver todo")
+
+Arriba del organigrama hay controles de zoom (`assets/organigrama.js`,
+JavaScript liviano sin dependencias): "－"/"+" para achicar/agrandar de
+a 10%, "100%" para volver al tamaño normal, y **"Ver todo"**, que
+calcula automáticamente el zoom necesario para que entre en la pantalla
+todo lo que esté desplegado en ese momento (por ancho y por alto). Muy
+útil para confirmar de un vistazo que una dependencia "rara" (con un
+código que no sigue el patrón esperado) está bien colgada del resto del
+árbol, sin tener que scrollear buscándola.
 
 ## Mostrar solo dependencias con personal activo
 

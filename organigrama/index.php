@@ -31,9 +31,17 @@ try {
 <?php elseif (empty($arbol)): ?>
     <p class="mensaje-info">No hay dependencias cargadas todavía.</p>
 <?php else: ?>
-    <div class="contenedor-organigrama">
+    <div class="zoom-controles">
+        <button type="button" id="zoom-ajustar" title="Achicar hasta que entre todo el organigrama desplegado">Ver todo</button>
+        <button type="button" id="zoom-menos" title="Alejar" aria-label="Alejar">&minus;</button>
+        <span id="zoom-nivel">100%</span>
+        <button type="button" id="zoom-mas" title="Acercar" aria-label="Acercar">+</button>
+        <button type="button" id="zoom-reset" title="Volver al tamaño normal">100%</button>
+    </div>
+    <div class="contenedor-organigrama" id="contenedor-organigrama">
         <?php renderizarArbol($arbol); ?>
     </div>
+    <script src="assets/organigrama.js"></script>
 <?php endif; ?>
 </main>
 </body>

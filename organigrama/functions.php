@@ -312,14 +312,23 @@ function compararDependenciasPorNivelYCodigo($a, $b)
  * elementos según la versión de PHP -este proyecto apunta a poder
  * correr desde PHP 5.1-, así que se evita esa combinación por completo.
  */
-function armarRamas($codigos, $nodos, $hijosDe)
+function armarRamas($codigos, $nodos, $hijosDe, $profundidad)
 {
     usort($codigos, 'compararCodigosPorNivelYCodigo');
     $resultado = array();
     foreach ($codigos as $codigo) {
         $nodo = $nodos[$codigo];
+        // 'profundidad' = posición real en el árbol dibujado (raíz = 1),
+        // a diferencia de 'nivel' (calculado a partir del propio código).
+        // Casi siempre coinciden, pero pueden no hacerlo si un código
+        // "salta" niveles en su numeración (por ejemplo, una secretaría
+        // codificada como si fuera nivel 4). Para el color/despliegue
+        // automático del raviol se usa la profundidad real, así el nodo
+        // se ve y se comporta según dónde cuelga de verdad, no según cómo
+        // esté numerado su código.
+        $nodo['profundidad'] = $profundidad;
         $hijosCodigos = isset($hijosDe[$codigo]) ? $hijosDe[$codigo] : array();
-        $nodo['hijos'] = armarRamas($hijosCodigos, $nodos, $hijosDe);
+        $nodo['hijos'] = armarRamas($hijosCodigos, $nodos, $hijosDe, $profundidad + 1);
         $resultado[] = $nodo;
     }
     return $resultado;
@@ -363,7 +372,7 @@ function construirArbol($dependencias)
         }
     }
 
-    return armarRamas($raicesCodigos, $nodos, $hijosDe);
+    return armarRamas($raicesCodigos, $nodos, $hijosDe, 1);
 }
 
 /**
@@ -414,7 +423,7 @@ function renderizarNodo($nodo)
             '</a>' .
             '<a class="nodo-boton" href="%s" target="_blank" rel="noopener" title="Ver información relacionada">Ver ficha &rarr;</a>' .
         '</span>',
-        (int) $nodo['nivel'],
+        (int) $nodo['profundidad'],
         $claseSinPersonal,
         urlencode($nodo['codigo']),
         htmlspecialchars($nodo['codigo'], ENT_QUOTES, 'UTF-8'),
@@ -439,7 +448,7 @@ function renderizarArbol($nodos)
     foreach ($nodos as $nodo) {
         echo '<li>';
         if (!empty($nodo['hijos'])) {
-            $abierto = $nodo['nivel'] <= NIVELES_EXPANDIDOS_POR_DEFECTO ? ' open' : '';
+            $abierto = $nodo['profundidad'] <= NIVELES_EXPANDIDOS_POR_DEFECTO ? ' open' : '';
             echo '<details class="rama"' . $abierto . '>';
             echo '<summary>';
             renderizarNodo($nodo);
