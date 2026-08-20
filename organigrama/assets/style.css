@@ -1,0 +1,201 @@
+:root {
+    --color-borde: #97a6ba;
+    --color-fondo-nodo: #ffffff;
+    --color-hover: #eaf1ff;
+    --color-texto: #202531;
+    --color-codigo: #667085;
+    --color-nivel-1: #1f3a63;
+    --color-nivel-2: #2e63a6;
+    --color-nivel-3: #5b8fd1;
+    --color-nivel-4: #8fb6e6;
+    --color-nivel-5: #b7d1f0;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: var(--color-texto);
+    background: #f4f6fa;
+}
+
+.cabecera {
+    padding: 24px 32px;
+    background: #ffffff;
+    border-bottom: 1px solid #e1e5ec;
+}
+
+.cabecera h1 { margin: 0 0 4px; font-size: 1.6rem; }
+.cabecera p { margin: 0; color: #566; }
+.cabecera .volver { color: var(--color-nivel-2); text-decoration: none; font-weight: 600; }
+.cabecera .volver:hover { text-decoration: underline; }
+
+main { padding: 32px; }
+
+.mensaje-error {
+    color: #b3261e;
+    background: #fdecea;
+    border: 1px solid #f3c1bd;
+    padding: 12px 16px;
+    border-radius: 6px;
+    max-width: 640px;
+}
+
+.mensaje-info { color: #566; }
+
+/* ---------- Organigrama (árbol visual con conectores CSS) ---------- */
+
+.contenedor-organigrama {
+    overflow-x: auto;
+    padding-bottom: 24px;
+}
+
+.organigrama,
+.organigrama ul {
+    list-style: none;
+    margin: 0;
+    padding: 20px 0 0;
+    display: flex;
+    justify-content: center;
+}
+
+.organigrama { padding-top: 0; }
+
+.organigrama li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding: 20px 12px 0;
+}
+
+/* Conectores horizontales/verticales entre hermanos */
+.organigrama li::before,
+.organigrama li::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 50%;
+    width: 50%;
+    height: 20px;
+    border-top: 2px solid var(--color-borde);
+}
+.organigrama li::after {
+    right: auto;
+    left: 50%;
+    border-left: 2px solid var(--color-borde);
+}
+.organigrama li:only-child::before,
+.organigrama li:only-child::after { display: none; }
+.organigrama li:only-child { padding-top: 0; }
+.organigrama li:first-child::before { border: 0 none; }
+.organigrama li:last-child::after { border: 0 none; }
+.organigrama li:last-child::before {
+    border-right: 2px solid var(--color-borde);
+    border-radius: 0 6px 0 0;
+}
+.organigrama li:first-child::after { border-radius: 6px 0 0 0; }
+
+/* Línea que baja hacia los hijos */
+.organigrama ul::before {
+    content: "";
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    width: 0;
+    height: 20px;
+    border-left: 2px solid var(--color-borde);
+}
+/* Los nodos raíz (ministerios) no cuelgan de un padre común, así que no
+   llevan conector arriba. Se acota al <ul> más externo (hijo directo de
+   .contenedor-organigrama) para no afectar los <ul> anidados, que
+   comparten la misma clase .organigrama. */
+.contenedor-organigrama > ul.organigrama > li { padding-top: 0; }
+.contenedor-organigrama > ul.organigrama > li::before,
+.contenedor-organigrama > ul.organigrama > li::after { display: none; }
+
+.nodo {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 170px;
+    max-width: 220px;
+    padding: 10px 14px;
+    background: var(--color-fondo-nodo);
+    border: 2px solid var(--color-borde);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--color-texto);
+    box-shadow: 0 1px 3px rgba(20, 30, 50, 0.12);
+    transition: background-color .15s, box-shadow .15s;
+}
+.nodo:hover {
+    background: var(--color-hover);
+    box-shadow: 0 3px 8px rgba(20, 30, 50, 0.2);
+}
+.nodo .codigo {
+    font-family: "Consolas", monospace;
+    font-size: .72rem;
+    color: var(--color-codigo);
+    letter-spacing: .03em;
+}
+.nodo .descripcion {
+    font-weight: 600;
+    font-size: .88rem;
+    line-height: 1.25;
+}
+
+.nodo.nivel-1 { border-color: var(--color-nivel-1); }
+.nodo.nivel-2 { border-color: var(--color-nivel-2); }
+.nodo.nivel-3 { border-color: var(--color-nivel-3); }
+.nodo.nivel-4 { border-color: var(--color-nivel-4); }
+.nodo.nivel-5,
+.nodo.nivel-6 { border-color: var(--color-nivel-5); }
+
+/* ---------- Página de detalle ---------- */
+
+.detalle .ficha {
+    background: #fff;
+    border: 1px solid #e1e5ec;
+    border-radius: 8px;
+    padding: 20px 24px;
+    max-width: 640px;
+    margin-bottom: 24px;
+}
+.detalle .ficha h2 { margin-top: 0; }
+.detalle dl { margin: 0; }
+.detalle dt {
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--color-codigo);
+    margin-top: 14px;
+}
+.detalle dt:first-child { margin-top: 0; }
+.detalle dd { margin: 2px 0 0; }
+.detalle dd a { color: var(--color-nivel-2); text-decoration: none; }
+.detalle dd a:hover { text-decoration: underline; }
+.detalle .codigo { font-family: "Consolas", monospace; color: var(--color-codigo); }
+
+.detalle .hijos { max-width: 640px; }
+.lista-hijos {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.lista-hijos li a {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #fff;
+    border: 1px solid #e1e5ec;
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--color-texto);
+}
+.lista-hijos li a:hover { background: var(--color-hover); }
