@@ -138,15 +138,20 @@ organigrama a las dependencias cuyo código aparece en el resultado de
 constante en `false` para desactivar el filtro y mostrar todas las
 dependencias, sin tocar nada más.
 
-Si un nivel intermedio se queda sin personal activo directo (por
-ejemplo, un ministerio o una subsecretaría que solo administra pero no
-tiene gente asignada), esa dependencia simplemente no aparece — sus
-descendientes activos se cuelgan del ancestro visible más cercano (el
-siguiente nivel hacia arriba que sí tenga personal activo), en vez de
-quedar sueltos como si fueran de nivel 1. Esto es lo que evita que el
-árbol se vea "todo en el mismo nivel" cuando faltan niveles intermedios.
-La página de detalle usa el mismo criterio, tanto para "Depende de" como
-para el listado de dependencias subordinadas.
+Si un nivel intermedio (ministerio, secretaría, subsecretaría, etc.) no
+tiene personal activo asignado en forma directa pero sí tiene algún
+descendiente con personal activo, esa dependencia se sigue mostrando de
+todas formas — como nodo "estructural", con borde punteado y algo más
+tenue (clase CSS `sin-personal`) para distinguirla de las unidades con
+gente asignada — en vez de saltearla. Así se conserva la profundidad real
+del organigrama (nivel 3, 4, etc.) incluso cuando la gerencia intermedia
+no tiene personal cargado directamente. Solo desaparecen del todo las
+ramas que no tienen ningún personal activo en ningún nivel por debajo.
+Si el ancestro directo de una dependencia igual llegara a faltar (por
+ejemplo, esa fila directamente no existe en la tabla), se cuelga del
+ancestro visible más cercano en vez de quedar como si fuera de nivel 1;
+la página de detalle usa el mismo criterio para "Depende de" y para el
+listado de dependencias subordinadas.
 
 ## Seguridad
 

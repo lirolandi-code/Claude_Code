@@ -84,7 +84,7 @@ if (!validarCodigo($codigo)) {
         <?php else: ?>
             <ul class="lista-hijos">
                 <?php foreach ($hijos as $hijo): ?>
-                    <li>
+                    <li<?php echo (isset($hijo['activa']) && !$hijo['activa']) ? ' class="sin-personal"' : ''; ?>>
                         <a class="fila-hijo-cuerpo" href="detalle.php?codigo=<?php echo urlencode($hijo['codigo_dependencia']); ?>">
                             <span class="codigo"><?php echo htmlspecialchars($hijo['codigo_dependencia'], ENT_QUOTES, 'UTF-8'); ?></span>
                             <span class="descripcion"><?php echo htmlspecialchars($hijo['descripcion'], ENT_QUOTES, 'UTF-8'); ?></span>

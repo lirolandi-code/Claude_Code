@@ -138,29 +138,38 @@ function obtenerCodigosActivos($pdo)
 
 /**
  * Verdadero si $codigo cumple con PREFIJO_CODIGO_FILTRO y, si
- * FILTRAR_SOLO_ACTIVAS está activo, tiene personal activo asignado.
+ * FILTRAR_SOLO_ACTIVAS está activo, es una dependencia visible (activa
+ * o ancestro de alguna activa).
  */
 function codigoEsVisible($pdo, $codigo)
 {
     if (!codigoPasaFiltro($codigo)) {
         return false;
     }
-    if (!FILTRAR_SOLO_ACTIVAS) {
-        return true;
-    }
-    return in_array($codigo, obtenerCodigosActivos($pdo), true);
+    $indice = indiceDeDependencias(obtenerDependencias($pdo));
+    return isset($indice[$codigo]);
 }
 
 /**
  * Trae todas las dependencias ordenadas por código, limitadas a las que
- * empiezan con PREFIJO_CODIGO_FILTRO (si está configurado) y, si
- * FILTRAR_SOLO_ACTIVAS está activo, a las que tienen personal activo
- * asignado. Los niveles intermedios sin personal activo simplemente no
- * aparecen en la lista: construirArbol()/obtenerHijosDirectos() los
- * saltean y cuelgan a sus descendientes del ancestro visible más cercano.
+ * empiezan con PREFIJO_CODIGO_FILTRO (si está configurado). Si
+ * FILTRAR_SOLO_ACTIVAS está activo, se queda con las que tienen personal
+ * activo asignado MÁS toda su cadena de ancestros reales (aunque esos
+ * niveles intermedios -secretarías, subsecretarías, direcciones- no
+ * tengan personal propio): así se conserva la profundidad real del
+ * organigrama en vez de "saltear" los niveles administrativos sin
+ * personal directo. Cada fila devuelta trae 'activa' (true/false) para
+ * poder distinguir en el render los nodos puramente estructurales.
+ * Se cachea en memoria: dentro de un mismo request se pide varias veces
+ * (organigrama, detalle, hijos) y es siempre la misma consulta.
  */
 function obtenerDependencias($pdo)
 {
+    static $resultado = null;
+    if ($resultado !== null) {
+        return $resultado;
+    }
+
     $sql = sprintf(
         'SELECT %s AS codigo_dependencia, %s AS descripcion FROM %s',
         CAMPO_CODIGO,
@@ -179,13 +188,29 @@ function obtenerDependencias($pdo)
     $todas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if (!FILTRAR_SOLO_ACTIVAS) {
-        return $todas;
+        $resultado = $todas;
+        return $resultado;
     }
 
+    $indice = indiceDeDependencias($todas);
     $activos = array_flip(obtenerCodigosActivos($pdo));
+
+    $visibles = array();
+    foreach ($activos as $codigo => $ignorar) {
+        if (!isset($indice[$codigo])) {
+            continue; // el código activo no está en la tabla (o no pasa el prefijo)
+        }
+        $actual = $codigo;
+        while ($actual !== null && !isset($visibles[$actual])) {
+            $visibles[$actual] = true;
+            $actual = codigoPadre($actual);
+        }
+    }
+
     $resultado = array();
     foreach ($todas as $dep) {
-        if (isset($activos[$dep['codigo_dependencia']])) {
+        if (isset($visibles[$dep['codigo_dependencia']])) {
+            $dep['activa'] = isset($activos[$dep['codigo_dependencia']]);
             $resultado[] = $dep;
         }
     }
@@ -262,6 +287,9 @@ function construirArbol($dependencias)
             'codigo'      => $codigo,
             'descripcion' => $dep['descripcion'],
             'nivel'       => nivelDeCodigo($codigo),
+            // Si FILTRAR_SOLO_ACTIVAS está desactivado no hay dato de
+            // actividad: se trata como activa para no marcar nada.
+            'activa'      => isset($dep['activa']) ? $dep['activa'] : true,
             'hijos'       => array(),
         );
     }
@@ -317,14 +345,19 @@ function urlDetalleExterna($codigo)
  */
 function renderizarNodo($nodo)
 {
+    // Nodo puramente estructural (sin personal activo directo, mostrado
+    // solo porque algún descendiente sí tiene): se marca con una clase
+    // aparte para distinguirlo visualmente de las unidades con personal.
+    $claseSinPersonal = empty($nodo['activa']) ? ' sin-personal' : '';
     printf(
-        '<span class="nodo nivel-%d">' .
+        '<span class="nodo nivel-%d%s">' .
             '<a class="nodo-cuerpo" href="detalle.php?codigo=%s" title="Ver detalle">' .
                 '<span class="codigo">%s</span><span class="descripcion">%s</span>' .
             '</a>' .
             '<a class="nodo-boton" href="%s" target="_blank" rel="noopener" title="Ver información relacionada">Ver ficha &rarr;</a>' .
         '</span>',
         (int) $nodo['nivel'],
+        $claseSinPersonal,
         urlencode($nodo['codigo']),
         htmlspecialchars($nodo['codigo'], ENT_QUOTES, 'UTF-8'),
         htmlspecialchars($nodo['descripcion'], ENT_QUOTES, 'UTF-8'),

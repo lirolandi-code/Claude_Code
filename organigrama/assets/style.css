@@ -171,6 +171,13 @@ main { padding: 32px; }
 }
 .nodo-boton:hover { background: var(--color-hover); }
 
+/* Dependencia sin personal activo directo, mostrada solo porque algún
+   descendiente sí tiene (mantiene la profundidad real del organigrama). */
+.nodo.sin-personal {
+    border-style: dashed;
+    opacity: .72;
+}
+
 .nodo.nivel-1 { border-color: var(--color-nivel-1); }
 .nodo.nivel-2 { border-color: var(--color-nivel-2); }
 .nodo.nivel-3 { border-color: var(--color-nivel-3); }
@@ -252,34 +259,34 @@ details.rama:not([open]) > summary .toggle-icon::before { content: "+"; }
 }
 .lista-hijos li {
     display: flex;
-    align-items: stretch;
+    align-items: baseline;
+    gap: 10px;
     background: #fff;
     border: 1px solid #e1e5ec;
     border-radius: 6px;
-    overflow: hidden;
+    padding: 10px 14px;
+}
+.lista-hijos li.sin-personal {
+    border-style: dashed;
+    opacity: .72;
 }
 .fila-hijo-cuerpo {
     flex: 1 1 auto;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
     text-decoration: none;
     color: var(--color-texto);
 }
-.fila-hijo-cuerpo:hover { background: var(--color-hover); }
+.fila-hijo-cuerpo:hover .descripcion { text-decoration: underline; }
 .fila-hijo-boton {
     flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    padding: 10px 14px;
-    font-size: .78rem;
+    /* misma tipografía que el botón "Ver ficha" del organigrama */
+    font-size: .72rem;
     font-weight: 600;
     text-decoration: none;
     color: var(--color-nivel-2);
-    background: #f3f6fb;
-    border-left: 1px solid #e1e5ec;
     white-space: nowrap;
 }
-.fila-hijo-boton:hover { background: var(--color-hover); }
+.fila-hijo-boton:hover { text-decoration: underline; }
