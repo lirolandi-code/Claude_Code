@@ -113,8 +113,51 @@ function codigoPasaFiltro($codigo)
 }
 
 /**
+ * Códigos de dependencia con personal activo asignado (SQL_CODIGOS_ACTIVOS),
+ * como array de códigos. Se cachea en memoria: dentro de un mismo request
+ * se pide varias veces (organigrama, detalle, hijos) y es la misma consulta.
+ */
+function obtenerCodigosActivos($pdo)
+{
+    static $codigos = null;
+    if ($codigos === null) {
+        $stmt = $pdo->query(SQL_CODIGOS_ACTIVOS);
+        $codigos = array();
+        $filas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($filas as $fila) {
+            // No se asume el nombre de columna que devuelve la
+            // subconsulta: se toma el primer valor de cada fila.
+            $valores = array_values($fila);
+            if (isset($valores[0]) && $valores[0] !== null) {
+                $codigos[] = $valores[0];
+            }
+        }
+    }
+    return $codigos;
+}
+
+/**
+ * Verdadero si $codigo cumple con PREFIJO_CODIGO_FILTRO y, si
+ * FILTRAR_SOLO_ACTIVAS está activo, tiene personal activo asignado.
+ */
+function codigoEsVisible($pdo, $codigo)
+{
+    if (!codigoPasaFiltro($codigo)) {
+        return false;
+    }
+    if (!FILTRAR_SOLO_ACTIVAS) {
+        return true;
+    }
+    return in_array($codigo, obtenerCodigosActivos($pdo), true);
+}
+
+/**
  * Trae todas las dependencias ordenadas por código, limitadas a las que
- * empiezan con PREFIJO_CODIGO_FILTRO (si está configurado).
+ * empiezan con PREFIJO_CODIGO_FILTRO (si está configurado) y, si
+ * FILTRAR_SOLO_ACTIVAS está activo, a las que tienen personal activo
+ * asignado. Los niveles intermedios sin personal activo simplemente no
+ * aparecen en la lista: construirArbol()/obtenerHijosDirectos() los
+ * saltean y cuelgan a sus descendientes del ancestro visible más cercano.
  */
 function obtenerDependencias($pdo)
 {
@@ -133,15 +176,29 @@ function obtenerDependencias($pdo)
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($parametros);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $todas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (!FILTRAR_SOLO_ACTIVAS) {
+        return $todas;
+    }
+
+    $activos = array_flip(obtenerCodigosActivos($pdo));
+    $resultado = array();
+    foreach ($todas as $dep) {
+        if (isset($activos[$dep['codigo_dependencia']])) {
+            $resultado[] = $dep;
+        }
+    }
+    return $resultado;
 }
 
 /**
- * Busca una dependencia puntual por código (respeta PREFIJO_CODIGO_FILTRO).
+ * Busca una dependencia puntual por código (respeta PREFIJO_CODIGO_FILTRO
+ * y FILTRAR_SOLO_ACTIVAS).
  */
 function obtenerDependenciaPorCodigo($pdo, $codigo)
 {
-    if (!codigoPasaFiltro($codigo)) {
+    if (!codigoEsVisible($pdo, $codigo)) {
         return null;
     }
     $sql = sprintf(
@@ -161,9 +218,40 @@ function obtenerDependenciaPorCodigo($pdo, $codigo)
 }
 
 /**
+ * Arma un índice codigo => true a partir de un listado de dependencias,
+ * para poder chequear rápido "¿este código está en la lista?".
+ */
+function indiceDeDependencias($dependencias)
+{
+    $indice = array();
+    foreach ($dependencias as $d) {
+        $indice[$d['codigo_dependencia']] = true;
+    }
+    return $indice;
+}
+
+/**
+ * Sube por la cadena de códigos padre de $codigo hasta encontrar uno
+ * presente en $indice, salteando los niveles intermedios que no están
+ * (por ejemplo, por FILTRAR_SOLO_ACTIVAS o porque esa fila directamente
+ * no existe en la tabla). Devuelve null si ningún ancestro está presente
+ * (osea, $codigo debe mostrarse como raíz).
+ */
+function ancestroVisible($codigo, $indice)
+{
+    $actual = codigoPadre($codigo);
+    while ($actual !== null && !isset($indice[$actual])) {
+        $actual = codigoPadre($actual);
+    }
+    return $actual;
+}
+
+/**
  * Construye el árbol jerárquico a partir del listado plano de dependencias.
  * Devuelve un arreglo con los nodos raíz; cada nodo tiene 'hijos' con sus
- * descendientes directos.
+ * descendientes directos. Si el ancestro directo de un código no está en
+ * la lista (nivel intermedio sin personal activo, por ejemplo), el nodo
+ * se cuelga del ancestro visible más cercano en vez de quedar como raíz.
  */
 function construirArbol($dependencias)
 {
@@ -178,11 +266,12 @@ function construirArbol($dependencias)
         );
     }
 
+    $indice = indiceDeDependencias($dependencias);
     $raices = array();
     foreach ($nodos as $codigo => &$nodo) {
-        $padre = codigoPadre($codigo);
-        if ($padre !== null && isset($nodos[$padre])) {
-            $nodos[$padre]['hijos'][] = &$nodo;
+        $ancestro = ancestroVisible($codigo, $indice);
+        if ($ancestro !== null) {
+            $nodos[$ancestro]['hijos'][] = &$nodo;
         } else {
             $raices[] = &$nodo;
         }
@@ -193,14 +282,19 @@ function construirArbol($dependencias)
 }
 
 /**
- * Devuelve las dependencias hijas directas de $codigo (calculado, no
- * requiere columna de padre en la tabla).
+ * Devuelve las dependencias hijas "directas" de $codigo, saltando los
+ * niveles intermedios ausentes (ver ancestroVisible()); usa el mismo
+ * criterio que construirArbol() para que el listado de la ficha de
+ * detalle coincida con lo que se ve en el organigrama.
  */
-function obtenerHijosDirectos($todasLasDependencias, $codigo)
+function obtenerHijosDirectos($todasLasDependencias, $codigo, $indice = null)
 {
+    if ($indice === null) {
+        $indice = indiceDeDependencias($todasLasDependencias);
+    }
     $hijos = array();
     foreach ($todasLasDependencias as $d) {
-        if (codigoPadre($d['codigo_dependencia']) === $codigo) {
+        if (ancestroVisible($d['codigo_dependencia'], $indice) === $codigo) {
             $hijos[] = $d;
         }
     }

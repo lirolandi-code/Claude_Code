@@ -18,10 +18,14 @@ if (!validarCodigo($codigo)) {
         } else {
             $error = null;
             $nivel = nivelDeCodigo($codigo);
-            $codigoPadre = codigoPadre($codigo);
-            $padre = $codigoPadre !== null ? obtenerDependenciaPorCodigo($pdo, $codigoPadre) : null;
             $todas = obtenerDependencias($pdo);
-            $hijos = obtenerHijosDirectos($todas, $codigo);
+            $indice = indiceDeDependencias($todas);
+            // Ancestro visible más cercano, no el padre estricto: si el
+            // nivel inmediatamente superior no tiene personal activo (o
+            // no está cargado), se salta hasta el que sí está visible.
+            $codigoPadre = ancestroVisible($codigo, $indice);
+            $padre = $codigoPadre !== null ? obtenerDependenciaPorCodigo($pdo, $codigoPadre) : null;
+            $hijos = obtenerHijosDirectos($todas, $codigo, $indice);
         }
     } catch (PDOException $e) {
         $error = 'No se pudo conectar a la base de datos. Verifique config.php.';
@@ -64,6 +68,8 @@ if (!validarCodigo($codigo)) {
                     </a>
                 <?php elseif ($codigoPadre !== null): ?>
                     <em>Código superior <?php echo htmlspecialchars($codigoPadre, ENT_QUOTES, 'UTF-8'); ?> no está cargado en la tabla.</em>
+                <?php elseif ($nivel > 1): ?>
+                    <em>No hay ninguna dependencia superior visible con los filtros configurados.</em>
                 <?php else: ?>
                     <em>Es la máxima autoridad (nivel 1).</em>
                 <?php endif; ?>
@@ -79,10 +85,11 @@ if (!validarCodigo($codigo)) {
             <ul class="lista-hijos">
                 <?php foreach ($hijos as $hijo): ?>
                     <li>
-                        <a href="detalle.php?codigo=<?php echo urlencode($hijo['codigo_dependencia']); ?>">
+                        <a class="fila-hijo-cuerpo" href="detalle.php?codigo=<?php echo urlencode($hijo['codigo_dependencia']); ?>">
                             <span class="codigo"><?php echo htmlspecialchars($hijo['codigo_dependencia'], ENT_QUOTES, 'UTF-8'); ?></span>
                             <span class="descripcion"><?php echo htmlspecialchars($hijo['descripcion'], ENT_QUOTES, 'UTF-8'); ?></span>
                         </a>
+                        <a class="fila-hijo-boton" href="<?php echo htmlspecialchars(urlDetalleExterna($hijo['codigo_dependencia']), ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener" title="Ver información relacionada">Ver ficha &rarr;</a>
                     </li>
                 <?php endforeach; ?>
             </ul>

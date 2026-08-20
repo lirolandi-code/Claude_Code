@@ -48,7 +48,7 @@ main { padding: 32px; }
 
 .contenedor-organigrama {
     overflow-x: auto;
-    padding-bottom: 24px;
+    padding: 0 24px 24px;
 }
 
 .organigrama,
@@ -57,7 +57,14 @@ main { padding: 32px; }
     margin: 0;
     padding: 20px 0 0;
     display: flex;
+    /* "justify-content: center" a secas puede dejar inalcanzable (ni
+       haciendo scroll) la parte que sobresale a la izquierda cuando el
+       árbol es más ancho que la pantalla. "safe center" evita eso: si
+       centrar recortaría contenido, se alinea al inicio en su lugar.
+       Se repite la propiedad como fallback para navegadores viejos que
+       no entienden "safe" (ignoran esa línea y se quedan con "center"). */
     justify-content: center;
+    justify-content: safe center;
 }
 
 .organigrama { padding-top: 0; }
@@ -243,15 +250,36 @@ details.rama:not([open]) > summary .toggle-icon::before { content: "+"; }
     flex-direction: column;
     gap: 8px;
 }
-.lista-hijos li a {
+.lista-hijos li {
     display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 10px 14px;
+    align-items: stretch;
     background: #fff;
     border: 1px solid #e1e5ec;
     border-radius: 6px;
+    overflow: hidden;
+}
+.fila-hijo-cuerpo {
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
     text-decoration: none;
     color: var(--color-texto);
 }
-.lista-hijos li a:hover { background: var(--color-hover); }
+.fila-hijo-cuerpo:hover { background: var(--color-hover); }
+.fila-hijo-boton {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    font-size: .78rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--color-nivel-2);
+    background: #f3f6fb;
+    border-left: 1px solid #e1e5ec;
+    white-space: nowrap;
+}
+.fila-hijo-boton:hover { background: var(--color-hover); }

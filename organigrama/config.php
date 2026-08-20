@@ -31,6 +31,23 @@ define('NIVELES_EXPANDIDOS_POR_DEFECTO', 4);
 // sepa de qué dependencia mostrar información.
 define('URL_DETALLE_EXTERNA', 'https://tudominio.com/ficha-dependencia.php');
 
+// Si es true, solo se muestran las dependencias que tengan personal
+// activo asignado (según SQL_CODIGOS_ACTIVOS). Los niveles intermedios
+// que queden sin personal activo directo simplemente se "saltean": sus
+// descendientes activos se cuelgan del ancestro visible más cercano,
+// para que el árbol no se rompa ni quede todo en el mismo nivel.
+define('FILTRAR_SOLO_ACTIVAS', true);
+
+// Subconsulta que devuelve los códigos de dependencia con personal
+// activo asignado. Se usa tal cual (entre paréntesis) dentro de un
+// "IN (...)"; ajustar si cambia el criterio de "activo".
+define('SQL_CODIGOS_ACTIVOS',
+    'SELECT DISTINCT(P20V72) FROM sv_usrpp20 ' .
+    'LEFT JOIN sv_usrpo10 ON P20A01 = O10A01 ' .
+    'LEFT JOIN sv_usrpa01 ON P20A01 = A01A01 ' .
+    "WHERE O10O08 > 0 AND O10O08 < 7 AND A01A41 = 0 AND A01A05 <> 'S' AND A01A18 = 'M'"
+);
+
 // --- Estructura del código de dependencia (10 posiciones) --------------
 // El código se compone de "segmentos" concatenados; cada segmento
 // representa un nivel jerárquico y su cantidad de caracteres.

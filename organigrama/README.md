@@ -130,6 +130,24 @@ con hacer clic en el circulito +/- debajo de cada raviol. Al entrar a
 `config.php`, por defecto `4`) arrancan desplegados; los niveles más
 profundos arrancan plegados y se despliegan con un clic.
 
+## Mostrar solo dependencias con personal activo
+
+`FILTRAR_SOLO_ACTIVAS` en `config.php` (por defecto `true`) limita el
+organigrama a las dependencias cuyo código aparece en el resultado de
+`SQL_CODIGOS_ACTIVOS` (la subconsulta de personal activo). Poner esa
+constante en `false` para desactivar el filtro y mostrar todas las
+dependencias, sin tocar nada más.
+
+Si un nivel intermedio se queda sin personal activo directo (por
+ejemplo, un ministerio o una subsecretaría que solo administra pero no
+tiene gente asignada), esa dependencia simplemente no aparece — sus
+descendientes activos se cuelgan del ancestro visible más cercano (el
+siguiente nivel hacia arriba que sí tenga personal activo), en vez de
+quedar sueltos como si fueran de nivel 1. Esto es lo que evita que el
+árbol se vea "todo en el mismo nivel" cuando faltan niveles intermedios.
+La página de detalle usa el mismo criterio, tanto para "Depende de" como
+para el listado de dependencias subordinadas.
+
 ## Seguridad
 
 - Todas las consultas usan sentencias preparadas (PDO) — no hay
