@@ -1,7 +1,5 @@
 <?php
-declare(strict_types=1);
-
-require_once __DIR__ . '/functions.php';
+require_once dirname(__FILE__) . '/functions.php';
 
 try {
     $pdo = obtenerConexion();
@@ -9,7 +7,7 @@ try {
     $arbol = construirArbol($dependencias);
     $error = null;
 } catch (PDOException $e) {
-    $arbol = [];
+    $arbol = array();
     $error = 'No se pudo conectar a la base de datos. Verifique config.php.';
 }
 ?>
@@ -29,7 +27,7 @@ try {
 
 <main>
 <?php if ($error): ?>
-    <p class="mensaje-error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></p>
+    <p class="mensaje-error"><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></p>
 <?php elseif (empty($arbol)): ?>
     <p class="mensaje-info">No hay dependencias cargadas todavía.</p>
 <?php else: ?>

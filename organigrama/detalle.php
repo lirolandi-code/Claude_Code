@@ -1,19 +1,19 @@
 <?php
-declare(strict_types=1);
-
-require_once __DIR__ . '/functions.php';
+require_once dirname(__FILE__) . '/functions.php';
 
 $codigo = isset($_GET['codigo']) ? strtoupper(trim((string) $_GET['codigo'])) : '';
 
+// http_response_code() recién existe desde PHP 5.4; para versiones
+// anteriores hay que fijar el estado HTTP a mano con header().
 if (!validarCodigo($codigo)) {
-    http_response_code(400);
+    header('HTTP/1.1 400 Bad Request');
     $error = 'El código de dependencia indicado no tiene un formato válido.';
 } else {
     try {
         $pdo = obtenerConexion();
         $dependencia = obtenerDependenciaPorCodigo($pdo, $codigo);
         if (!$dependencia) {
-            http_response_code(404);
+            header('HTTP/1.1 404 Not Found');
             $error = 'No se encontró ninguna dependencia con el código ' . htmlspecialchars($codigo, ENT_QUOTES, 'UTF-8') . '.';
         } else {
             $error = null;
@@ -33,7 +33,7 @@ if (!validarCodigo($codigo)) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Detalle de Dependencia<?= isset($dependencia) ? ' - ' . htmlspecialchars($dependencia['descripcion'], ENT_QUOTES, 'UTF-8') : '' ?></title>
+<title>Detalle de Dependencia<?php echo isset($dependencia) ? ' - ' . htmlspecialchars($dependencia['descripcion'], ENT_QUOTES, 'UTF-8') : ''; ?></title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -44,26 +44,26 @@ if (!validarCodigo($codigo)) {
 
 <main class="detalle">
 <?php if ($error): ?>
-    <p class="mensaje-error"><?= $error ?></p>
+    <p class="mensaje-error"><?php echo $error; ?></p>
 <?php else: ?>
     <section class="ficha">
-        <h2><?= htmlspecialchars($dependencia['descripcion'], ENT_QUOTES, 'UTF-8') ?></h2>
+        <h2><?php echo htmlspecialchars($dependencia['descripcion'], ENT_QUOTES, 'UTF-8'); ?></h2>
         <dl>
             <dt>Código de dependencia</dt>
-            <dd class="codigo"><?= htmlspecialchars($dependencia['codigo_dependencia'], ENT_QUOTES, 'UTF-8') ?></dd>
+            <dd class="codigo"><?php echo htmlspecialchars($dependencia['codigo_dependencia'], ENT_QUOTES, 'UTF-8'); ?></dd>
 
             <dt>Nivel jerárquico</dt>
-            <dd><?= (int) $nivel ?></dd>
+            <dd><?php echo (int) $nivel; ?></dd>
 
             <dt>Depende de</dt>
             <dd>
                 <?php if ($padre): ?>
-                    <a href="detalle.php?codigo=<?= urlencode($padre['codigo_dependencia']) ?>">
-                        <span class="codigo"><?= htmlspecialchars($padre['codigo_dependencia'], ENT_QUOTES, 'UTF-8') ?></span>
-                        &mdash; <?= htmlspecialchars($padre['descripcion'], ENT_QUOTES, 'UTF-8') ?>
+                    <a href="detalle.php?codigo=<?php echo urlencode($padre['codigo_dependencia']); ?>">
+                        <span class="codigo"><?php echo htmlspecialchars($padre['codigo_dependencia'], ENT_QUOTES, 'UTF-8'); ?></span>
+                        &mdash; <?php echo htmlspecialchars($padre['descripcion'], ENT_QUOTES, 'UTF-8'); ?>
                     </a>
                 <?php elseif ($codigoPadre !== null): ?>
-                    <em>Código superior <?= htmlspecialchars($codigoPadre, ENT_QUOTES, 'UTF-8') ?> no está cargado en la tabla.</em>
+                    <em>Código superior <?php echo htmlspecialchars($codigoPadre, ENT_QUOTES, 'UTF-8'); ?> no está cargado en la tabla.</em>
                 <?php else: ?>
                     <em>Es la máxima autoridad (nivel 1).</em>
                 <?php endif; ?>
@@ -79,9 +79,9 @@ if (!validarCodigo($codigo)) {
             <ul class="lista-hijos">
                 <?php foreach ($hijos as $hijo): ?>
                     <li>
-                        <a href="detalle.php?codigo=<?= urlencode($hijo['codigo_dependencia']) ?>">
-                            <span class="codigo"><?= htmlspecialchars($hijo['codigo_dependencia'], ENT_QUOTES, 'UTF-8') ?></span>
-                            <span class="descripcion"><?= htmlspecialchars($hijo['descripcion'], ENT_QUOTES, 'UTF-8') ?></span>
+                        <a href="detalle.php?codigo=<?php echo urlencode($hijo['codigo_dependencia']); ?>">
+                            <span class="codigo"><?php echo htmlspecialchars($hijo['codigo_dependencia'], ENT_QUOTES, 'UTF-8'); ?></span>
+                            <span class="descripcion"><?php echo htmlspecialchars($hijo['descripcion'], ENT_QUOTES, 'UTF-8'); ?></span>
                         </a>
                     </li>
                 <?php endforeach; ?>

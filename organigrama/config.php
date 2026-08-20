@@ -1,12 +1,14 @@
 <?php
-declare(strict_types=1);
+// Compatible con PHP 5.1 en adelante (hosting sin posibilidad de
+// actualizar la versión de PHP): sin declare(strict_types), sin type
+// hints escalares, sin arrays como constantes.
 
 // --- Conexión a la base de datos --------------------------------------
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'milegajo');
 define('DB_USER', 'root');
 define('DB_PASS', '');
-define('DB_CHARSET', 'utf8mb4');
+define('DB_CHARSET', 'utf8');
 
 // --- Tabla y campos de dependencias -------------------------------------
 define('TABLA_DEPENDENCIAS', 'sv_dpnpdat0');
@@ -25,4 +27,7 @@ define('CAMPO_DESCRIPCION', 'DPNDES');
 // su padre se obtiene poniendo ese segmento en ceros.
 // Si el esquema real de códigos de la empresa difiere, basta con
 // ajustar este arreglo (los valores deben sumar 10).
-define('SEGMENT_LENGTHS', [1, 1, 2, 2, 2, 2]);
+//
+// PHP anterior a la versión 7 no permite guardar un array como
+// constante con define(), por eso se usa una variable global.
+$GLOBALS['SEGMENT_LENGTHS'] = array(1, 1, 2, 2, 2, 2);

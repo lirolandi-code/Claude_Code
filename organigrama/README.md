@@ -21,9 +21,18 @@ organigrama/
 
 ## Requisitos
 
-- PHP 7.4 o superior (probado pensando en 8.x) con la extensión `pdo_mysql`.
-- MySQL 5.7+ / MariaDB equivalente.
+- **PHP 5.1 o superior**, con la extensión `pdo_mysql`. El código está
+  escrito deliberadamente sin funciones anónimas, sin type hints
+  escalares/de retorno, sin `declare(strict_types)` y sin sintaxis corta
+  de arrays, para poder correr en hostings que no permiten elegir una
+  versión de PHP más moderna. Si tu hosting sí soporta PHP 7.4+, el
+  código funciona igual sin cambios.
+- MySQL 5.x / MariaDB equivalente.
 - Un servidor web (Apache, Nginx+PHP-FPM) o `php -S` para pruebas.
+- El charset de conexión es `utf8` (no `utf8mb4`) por compatibilidad con
+  clientes MySQL antiguos; si tu servidor es moderno y necesitás emojis
+  o caracteres de 4 bytes, podés cambiar `DB_CHARSET` a `utf8mb4` en
+  `config.php`.
 
 ## Instalación
 

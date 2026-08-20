@@ -1,20 +1,27 @@
 <?php
-declare(strict_types=1);
+// Compatible con PHP 5.1 en adelante: sin type hints escalares/de
+// retorno, sin funciones anónimas (closures), sin sintaxis corta de
+// arrays.
 
-require_once __DIR__ . '/config.php';
+require_once dirname(__FILE__) . '/config.php';
 
 /**
  * Devuelve una conexión PDO reutilizable a la base de datos.
  */
-function obtenerConexion(): PDO
+function obtenerConexion()
 {
     static $pdo = null;
     if ($pdo === null) {
-        $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
-        $pdo = new PDO($dsn, DB_USER, DB_PASS, [
+        $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME;
+        $opciones = array(
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]);
+            // El parámetro "charset" en el DSN recién se soportó en
+            // PHP 5.3.6; para versiones anteriores hay que fijar el
+            // charset con un comando de inicio de sesión.
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES '" . DB_CHARSET . "'",
+        );
+        $pdo = new PDO($dsn, DB_USER, DB_PASS, $opciones);
     }
     return $pdo;
 }
@@ -23,9 +30,10 @@ function obtenerConexion(): PDO
  * Verifica que el código tenga el formato esperado: 1 letra + dígitos,
  * con la longitud total definida por SEGMENT_LENGTHS.
  */
-function validarCodigo(string $codigo): bool
+function validarCodigo($codigo)
 {
-    $largoTotal = array_sum(SEGMENT_LENGTHS);
+    global $SEGMENT_LENGTHS;
+    $largoTotal = array_sum($SEGMENT_LENGTHS);
     if (strlen($codigo) !== $largoTotal) {
         return false;
     }
@@ -35,18 +43,19 @@ function validarCodigo(string $codigo): bool
 /**
  * Divide el código en los segmentos jerárquicos definidos en SEGMENT_LENGTHS.
  */
-function segmentosDeCodigo(string $codigo): array
+function segmentosDeCodigo($codigo)
 {
-    $segmentos = [];
+    global $SEGMENT_LENGTHS;
+    $segmentos = array();
     $pos = 0;
-    foreach (SEGMENT_LENGTHS as $largo) {
+    foreach ($SEGMENT_LENGTHS as $largo) {
         $segmentos[] = substr($codigo, $pos, $largo);
         $pos += $largo;
     }
     return $segmentos;
 }
 
-function segmentoEsCero(string $segmento): bool
+function segmentoEsCero($segmento)
 {
     return preg_match('/^0+$/', $segmento) === 1;
 }
@@ -54,11 +63,12 @@ function segmentoEsCero(string $segmento): bool
 /**
  * Nivel jerárquico = índice (1-based) del último segmento no nulo.
  */
-function nivelDeCodigo(string $codigo): int
+function nivelDeCodigo($codigo)
 {
     $segmentos = segmentosDeCodigo($codigo);
     $nivel = 1;
-    for ($i = 1, $n = count($segmentos); $i < $n; $i++) {
+    $n = count($segmentos);
+    for ($i = 1; $i < $n; $i++) {
         if (!segmentoEsCero($segmentos[$i])) {
             $nivel = $i + 1;
         }
@@ -70,7 +80,7 @@ function nivelDeCodigo(string $codigo): int
  * Código de la dependencia de la cual depende $codigo, o null si es raíz
  * (nivel 1). Se obtiene anulando el último segmento no nulo.
  */
-function codigoPadre(string $codigo): ?string
+function codigoPadre($codigo)
 {
     $segmentos = segmentosDeCodigo($codigo);
     $ultimoNoNulo = null;
@@ -90,7 +100,7 @@ function codigoPadre(string $codigo): ?string
 /**
  * Trae todas las dependencias ordenadas por código.
  */
-function obtenerDependencias(PDO $pdo): array
+function obtenerDependencias($pdo)
 {
     $sql = sprintf(
         'SELECT %s AS codigo_dependencia, %s AS descripcion FROM %s ORDER BY %s ASC',
@@ -106,7 +116,7 @@ function obtenerDependencias(PDO $pdo): array
 /**
  * Busca una dependencia puntual por código.
  */
-function obtenerDependenciaPorCodigo(PDO $pdo, string $codigo): ?array
+function obtenerDependenciaPorCodigo($pdo, $codigo)
 {
     $sql = sprintf(
         'SELECT %s AS codigo_dependencia, %s AS descripcion FROM %s WHERE %s = ?',
@@ -116,9 +126,12 @@ function obtenerDependenciaPorCodigo(PDO $pdo, string $codigo): ?array
         CAMPO_CODIGO
     );
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$codigo]);
+    $stmt->execute(array($codigo));
     $fila = $stmt->fetch();
-    return $fila ?: null;
+    if ($fila) {
+        return $fila;
+    }
+    return null;
 }
 
 /**
@@ -126,20 +139,20 @@ function obtenerDependenciaPorCodigo(PDO $pdo, string $codigo): ?array
  * Devuelve un arreglo con los nodos raíz; cada nodo tiene 'hijos' con sus
  * descendientes directos.
  */
-function construirArbol(array $dependencias): array
+function construirArbol($dependencias)
 {
-    $nodos = [];
+    $nodos = array();
     foreach ($dependencias as $dep) {
         $codigo = $dep['codigo_dependencia'];
-        $nodos[$codigo] = [
+        $nodos[$codigo] = array(
             'codigo'      => $codigo,
             'descripcion' => $dep['descripcion'],
             'nivel'       => nivelDeCodigo($codigo),
-            'hijos'       => [],
-        ];
+            'hijos'       => array(),
+        );
     }
 
-    $raices = [];
+    $raices = array();
     foreach ($nodos as $codigo => &$nodo) {
         $padre = codigoPadre($codigo);
         if ($padre !== null && isset($nodos[$padre])) {
@@ -157,19 +170,22 @@ function construirArbol(array $dependencias): array
  * Devuelve las dependencias hijas directas de $codigo (calculado, no
  * requiere columna de padre en la tabla).
  */
-function obtenerHijosDirectos(array $todasLasDependencias, string $codigo): array
+function obtenerHijosDirectos($todasLasDependencias, $codigo)
 {
-    return array_values(array_filter(
-        $todasLasDependencias,
-        static fn (array $d): bool => codigoPadre($d['codigo_dependencia']) === $codigo
-    ));
+    $hijos = array();
+    foreach ($todasLasDependencias as $d) {
+        if (codigoPadre($d['codigo_dependencia']) === $codigo) {
+            $hijos[] = $d;
+        }
+    }
+    return $hijos;
 }
 
 /**
  * Imprime recursivamente el árbol como lista <ul>/<li> anidada, base del
  * organigrama visual (los conectores se dibujan con CSS).
  */
-function renderizarArbol(array $nodos): void
+function renderizarArbol($nodos)
 {
     if (empty($nodos)) {
         return;
