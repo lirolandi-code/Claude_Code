@@ -31,23 +31,14 @@ define('NIVELES_EXPANDIDOS_POR_DEFECTO', 4);
 // sepa de qué dependencia mostrar información.
 define('URL_DETALLE_EXTERNA', 'https://tudominio.com/ficha-dependencia.php');
 
-// Si es true, se ocultan las ramas del organigrama que no tengan
-// personal activo en ningún punto (según SQL_CODIGOS_ACTIVOS).
+// Si es true, el organigrama se limita a los códigos que devuelve
+// SQL_CODIGOS_ACTIVOS (personal activo asignado), MÁS la cadena de
+// ancestros reales de cada uno de esos códigos (ministerio, secretaría,
+// etc.) para que el árbol llegue conectado hasta la raíz en vez de
+// quedar roto. No se agrega ninguna otra dependencia: una subsecretaría
+// sin personal activo y sin ningún descendiente activo no se muestra,
+// aunque otra dependencia de la misma secretaría sí tenga personal.
 define('FILTRAR_SOLO_ACTIVAS', true);
-
-// Nivel jerárquico que se usa como "unidad de decisión" para el filtro
-// de arriba: se agrupan las dependencias por su ancestro de este nivel
-// (por ejemplo, 2 = la Secretaría). Si ESE grupo tiene personal activo
-// en cualquier punto de su estructura, se muestra COMPLETO -todas sus
-// subsecretarías, direcciones, etc., aunque esos niveles intermedios no
-// tengan personal propio-, en vez de mostrar solo el camino mínimo
-// hasta cada código con personal. Así se conserva la estructura
-// administrativa real del área activa. Solo desaparecen del todo los
-// grupos (secretarías, en el ejemplo) que no tienen NINGÚN personal
-// activo en ninguno de sus niveles.
-// Bajarlo (por ej. a 1) muestra ramas más grandes con menos recorte;
-// subirlo (por ej. a 3) recorta más agresivo, a nivel subsecretaría.
-define('NIVEL_CORTE_ACTIVAS', 2);
 
 // Subconsulta que devuelve los códigos de dependencia con personal
 // activo asignado. Se usa tal cual (entre paréntesis) dentro de un

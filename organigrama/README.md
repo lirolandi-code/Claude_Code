@@ -138,29 +138,31 @@ organigrama a las dependencias cuyo código aparece en el resultado de
 constante en `false` para desactivar el filtro y mostrar todas las
 dependencias, sin tocar nada más.
 
-El filtro no decide dependencia por dependencia, sino por **grupos**:
-`NIVEL_CORTE_ACTIVAS` (por defecto `2`, es decir la Secretaría) define
-qué nivel se usa como "unidad de decisión". Cada dependencia se agrupa
-bajo su ancestro de ese nivel; si ESE grupo tiene personal activo en
-cualquier punto de su estructura (en cualquier subsecretaría, dirección,
-coordinación, etc.), se muestra el grupo **completo** — incluidos los
-niveles intermedios que no tengan personal propio, marcados con borde
-punteado y algo más tenues (clase CSS `sin-personal`) para distinguirlos
-de las unidades con gente asignada. Solo desaparecen del todo los grupos
-que no tienen absolutamente ningún personal activo en ninguno de sus
-niveles. Esto evita que, por ejemplo, una Subsecretaría sin personal
-directo "desaparezca" del árbol aunque otra Dirección de la misma
-Secretaría sí tenga gente asignada — antes se mostraba solo el camino
-mínimo hasta cada código activo, lo que podía saltear niveles enteros de
-la estructura real.
+El criterio es estricto: se muestra un código si (a) aparece en el
+resultado de `SQL_CODIGOS_ACTIVOS`, o (b) es un ancestro real (padre,
+abuelo, etc., calculado a partir del propio código de 10 posiciones) de
+algún código que aparece ahí — esto último solo para que el árbol llegue
+conectado hasta la raíz, no se agrega ninguna otra dependencia. Una
+subsecretaría sin personal activo y sin ningún descendiente activo no se
+muestra, aunque otra dependencia de la misma secretaría sí tenga gente
+asignada. Los ancestros incluidos solo por conectividad (sin personal
+propio) se marcan con borde punteado y algo más tenues (clase CSS
+`sin-personal`) para distinguirlos de las unidades con personal
+asignado directamente.
 
-Si el ancestro directo de una dependencia igual llegara a faltar por
-completo (por ejemplo, esa fila directamente no existe en la tabla), se
-cuelga del ancestro visible más cercano en vez de quedar como si fuera
-de nivel 1; la página de detalle usa el mismo criterio para "Depende de"
-y para el listado de dependencias subordinadas, que además se muestra
-ordenado por nivel jerárquico (las subsecretarías antes que las
-direcciones, por ejemplo) y no por orden alfabético/numérico de código.
+Si el ancestro directo de una dependencia llegara a faltar por completo
+de la tabla (una fila que directamente no existe), se cuelga del
+ancestro visible más cercano en vez de quedar como si fuera de nivel 1;
+la página de detalle usa el mismo criterio para "Depende de" y para el
+listado de dependencias subordinadas, que además se muestra ordenado
+por nivel jerárquico (las subsecretarías antes que las direcciones, por
+ejemplo) y no por orden alfabético/numérico de código.
+
+El árbol se arma sin usar referencias de PHP (`&`) en ningún punto:
+ordenar (`usort`) un array que contiene referencias es una combinación
+que puede perder o corromper elementos según la versión de PHP, algo
+que conviene evitar del todo en un proyecto pensado para poder correr
+desde PHP 5.1.
 
 ## Seguridad
 
