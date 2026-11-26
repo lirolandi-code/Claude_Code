@@ -1,0 +1,785 @@
+<title>NEWROL RRHH · Rediseño</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: app shell — barra lateral oscura fija + barra superior + contenido en tarjetas sobre fondo gris azulado.
+   Todas las pantallas (Legajos, Asistencia, etc.) comparten la misma cáscara y los mismos componentes. */
+:root{
+  --bg:#f2f5f9; --surface:#ffffff; --surface-2:#f7f9fc; --line:#e1e7ef; --line-strong:#cbd5e1;
+  --ink:#0f1b2d; --ink-2:#47556a; --ink-3:#7a879a;
+  --brand:#1d5ca8; --brand-hover:#174c8c; --brand-ink:#ffffff; --brand-soft:#e7effa; --celeste:#3d9ad6;
+  --nav-bg:#0d1a2b; --nav-bg-2:#13243a; --nav-fg:#b9c6d8; --nav-fg-strong:#ffffff; --nav-line:#1e3148;
+  --ok:#17804f; --ok-soft:#e3f4ec; --warn:#9a5b00; --warn-soft:#fdf1dc; --danger:#bf3434; --danger-soft:#fbe7e7;
+  --focus:0 0 0 3px color-mix(in srgb, var(--brand) 30%, transparent);
+  --shadow:0 1px 2px rgba(15,27,45,.06), 0 4px 16px rgba(15,27,45,.05);
+  --f-display:"Manrope", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Public Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r-sm:6px; --r:10px; --r-lg:14px;
+  --nav-w:256px; --top-h:60px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0a111b; --surface:#111a26; --surface-2:#162130; --line:#233246; --line-strong:#2f4159;
+  --ink:#e6edf6; --ink-2:#a9b6c8; --ink-3:#77869b;
+  --brand:#5b9df0; --brand-hover:#7bb1f4; --brand-ink:#08111c; --brand-soft:#15263d; --celeste:#62b4ea;
+  --nav-bg:#070d15; --nav-bg-2:#0e1826; --nav-fg:#9fb0c6; --nav-fg-strong:#ffffff; --nav-line:#182638;
+  --ok:#4cc38a; --ok-soft:#10291e; --warn:#f0b357; --warn-soft:#2c2112; --danger:#f17676; --danger-soft:#311617;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0a111b; --surface:#111a26; --surface-2:#162130; --line:#233246; --line-strong:#2f4159;
+  --ink:#e6edf6; --ink-2:#a9b6c8; --ink-3:#77869b;
+  --brand:#5b9df0; --brand-hover:#7bb1f4; --brand-ink:#08111c; --brand-soft:#15263d; --celeste:#62b4ea;
+  --nav-bg:#070d15; --nav-bg-2:#0e1826; --nav-fg:#9fb0c6; --nav-fg-strong:#ffffff; --nav-line:#182638;
+  --ok:#4cc38a; --ok-soft:#10291e; --warn:#f0b357; --warn-soft:#2c2112; --danger:#f17676; --danger-soft:#311617;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25); color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--f-body);-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:22px;font-weight:800} h2{font-size:16px;font-weight:700} h3{font-size:14px;font-weight:700}
+a{color:var(--brand)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:13px}
+.muted{color:var(--ink-3)}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:none;box-shadow:var(--focus);border-radius:var(--r-sm)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+
+/* ---------- Botones ---------- */
+.btn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 16px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .15s,border-color .15s}
+.btn:hover{background:var(--surface-2);border-color:var(--ink-3)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.primary:hover{background:var(--brand-hover);border-color:var(--brand-hover)}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--ink-2)}
+.btn.ghost:hover{background:var(--surface-2)}
+.btn.danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,var(--line))}
+.btn.sm{height:32px;padding:0 12px;font-size:13px}
+.btn.block{width:100%;justify-content:center}
+.icon-btn{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:var(--r-sm);border:0;background:transparent;color:var(--ink-3);cursor:pointer}
+.icon-btn:hover{background:var(--surface-2);color:var(--ink)}
+.icon-btn.danger:hover{color:var(--danger);background:var(--danger-soft)}
+.icon-btn.ok:hover{color:var(--ok);background:var(--ok-soft)}
+
+/* ---------- Formularios ---------- */
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-size:13px;font-weight:600;color:var(--ink-2);display:flex;gap:8px;align-items:baseline}
+.field label .code{font-family:var(--f-mono);font-size:11px;font-weight:400;color:var(--ink-3)}
+.field label .req{color:var(--danger)}
+.input,.select,.textarea{width:100%;height:40px;padding:0 12px;border:1px solid var(--line-strong);border-radius:var(--r-sm);background:var(--surface);transition:border-color .15s, box-shadow .15s}
+.textarea{height:auto;min-height:88px;padding:10px 12px;resize:vertical}
+.input:hover,.select:hover,.textarea:hover{border-color:var(--ink-3)}
+.input:focus,.select:focus,.textarea:focus{outline:none;border-color:var(--brand);box-shadow:var(--focus)}
+.input[readonly]{background:var(--surface-2);color:var(--ink-2)}
+.help{font-size:12px;color:var(--ink-3)}
+.input-icon{position:relative}
+.input-icon svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-3)}
+.input-icon .input{padding-left:38px}
+.check{display:inline-flex;align-items:center;gap:8px;cursor:pointer;color:var(--ink-2)}
+.check input{width:16px;height:16px;accent-color:var(--brand)}
+.grid-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 24px}
+.grid-form .full{grid-column:1/-1}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 24px}
+.dropzone{border:1.5px dashed var(--line-strong);border-radius:var(--r);padding:18px;display:flex;align-items:center;gap:14px;background:var(--surface-2);color:var(--ink-2)}
+.dropzone .ico{width:40px;height:40px;border-radius:var(--r-sm);background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;flex:none}
+
+/* ---------- Chips / estados ---------- */
+.chip{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line)}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.8}
+.chip.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.chip.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.chip.danger{background:var(--danger-soft);color:var(--danger);border-color:transparent}
+.chip.info{background:var(--brand-soft);color:var(--brand);border-color:transparent}
+.tag{font-family:var(--f-mono);font-size:12px;padding:2px 7px;border-radius:4px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2)}
+
+/* ---------- Tarjetas ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);min-width:0}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.card-b{padding:20px}
+.section-title{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.section-title .n{font-family:var(--f-mono);font-size:12px;color:var(--brand);background:var(--brand-soft);border-radius:4px;padding:1px 6px}
+
+/* ---------- App shell ---------- */
+.app{display:grid;grid-template-columns:var(--nav-w) minmax(0,1fr);min-height:100%}
+.nav{background:var(--nav-bg);color:var(--nav-fg);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;height:100dvh;overflow-y:auto}
+.nav-brand{display:flex;align-items:center;gap:10px;height:var(--top-h);padding:0 20px;border-bottom:1px solid var(--nav-line);color:var(--nav-fg-strong);text-decoration:none}
+.logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--celeste),#1d5ca8);display:grid;place-items:center;color:#fff;font:800 14px var(--f-display)}
+.nav-brand b{font:800 16px var(--f-display);letter-spacing:.02em}
+.nav-brand small{display:block;font-size:11px;color:var(--nav-fg);font-weight:500;letter-spacing:.04em}
+.nav-portal{margin:16px 12px 8px;padding:10px 12px;border-radius:var(--r);background:var(--nav-bg-2);display:flex;align-items:center;gap:10px;color:var(--nav-fg-strong);border:1px solid var(--nav-line);cursor:pointer;text-decoration:none}
+.nav-portal .pi{width:30px;height:30px;border-radius:8px;background:color-mix(in srgb,var(--celeste) 22%,transparent);color:var(--celeste);display:grid;place-items:center}
+.nav-portal > span:not(.pi){font-weight:700;font-size:14px;flex:1;min-width:0}
+.nav-portal .pi{flex:none}
+.nav-portal small{display:block;font-size:11px;color:var(--nav-fg);font-weight:500}
+.nav-group{padding:8px 12px}
+.nav-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:color-mix(in srgb,var(--nav-fg) 70%,transparent);padding:8px 10px 6px}
+.nav a.item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r-sm);color:var(--nav-fg);text-decoration:none;font-weight:500;position:relative}
+.nav a.item:hover{background:var(--nav-bg-2);color:var(--nav-fg-strong)}
+.nav a.item.active{background:color-mix(in srgb,var(--celeste) 16%,transparent);color:var(--nav-fg-strong)}
+.nav a.item.active::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--celeste)}
+.nav .sub{margin:2px 0 6px 19px;padding-left:12px;border-left:1px solid var(--nav-line);display:flex;flex-direction:column;gap:1px}
+.nav .sub a.item{padding:6px 10px;font-size:13px}
+.nav .count{margin-left:auto;font-size:11px;font-weight:700;background:var(--celeste);color:#06121f;border-radius:999px;padding:0 7px;line-height:18px}
+.nav-foot{margin-top:auto;padding:12px;border-top:1px solid var(--nav-line);font-size:11px;color:color-mix(in srgb,var(--nav-fg) 75%,transparent)}
+
+.main{display:flex;flex-direction:column;min-width:0}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;height:var(--top-h);display:flex;align-items:center;gap:16px;padding:0 max(16px,env(safe-area-inset-right,0px)) 0 24px;background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.crumbs{display:flex;align-items:center;gap:6px;color:var(--ink-3);font-size:13px;min-width:0;white-space:nowrap;overflow:hidden}
+.crumbs a{color:var(--ink-3);text-decoration:none}.crumbs a:hover{color:var(--ink)}
+.crumbs b{color:var(--ink);font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.crumbs svg{width:14px;height:14px}
+.omni{margin-left:auto;position:relative;width:min(360px,34vw)}
+.omni .input{height:36px;background:var(--surface-2)}
+.omni kbd{position:absolute;right:10px;top:50%;transform:translateY(-50%);font:500 11px var(--f-mono);color:var(--ink-3);border:1px solid var(--line-strong);border-radius:4px;padding:1px 5px;background:var(--surface)}
+.top-actions{display:flex;align-items:center;gap:4px}
+.dot{position:relative}.dot::after{content:"";position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--danger);border:2px solid var(--surface)}
+.me{display:flex;align-items:center;gap:10px;padding:4px 6px 4px 4px;border-radius:999px;border:1px solid var(--line);margin-left:6px}
+.avatar{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:700 12px var(--f-display);color:#fff;flex:none}
+.me-txt{line-height:1.15;font-size:13px;font-weight:600}.me-txt small{display:block;font-weight:500;color:var(--ink-3);font-size:11px}
+.menu-toggle{display:none}
+
+.content{padding:28px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px));padding-inline:28px;max-width:1320px;width:100%}
+.page-h{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.page-h p{margin:4px 0 0;color:var(--ink-2)}
+.page-h .actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---------- Tablas ---------- */
+.table-wrap{overflow-x:auto}
+table.t{width:100%;border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
+.t th{text-align:left;font-size:12px;font-weight:600;color:var(--ink-3);letter-spacing:.04em;text-transform:uppercase;padding:10px 16px;background:var(--surface-2);border-bottom:1px solid var(--line);white-space:nowrap}
+.t td{padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+.t tbody tr{transition:background .1s;cursor:pointer}
+.t tbody tr:hover{background:var(--surface-2)}
+.t tbody tr.sel{background:var(--brand-soft)}
+.t tr:last-child td{border-bottom:0}
+.t .person{display:flex;align-items:center;gap:12px}
+.t .person b{font-weight:600;display:block}
+.t .person small{color:var(--ink-3);font-size:12px}
+.t .acts{display:flex;gap:2px;justify-content:flex-end}
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}
+.toolbar .grow{flex:1 1 260px}
+.toolbar .select{width:auto;min-width:160px;height:38px}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;border-top:1px solid var(--line);color:var(--ink-3);font-size:13px;flex-wrap:wrap}
+.pager .pg{display:flex;gap:4px}
+.pager .pg button{min-width:32px;height:32px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface);cursor:pointer}
+.pager .pg button.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.tabs{display:flex;gap:4px;padding:0 20px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:none;padding:14px 10px;font-weight:600;color:var(--ink-3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;display:flex;gap:8px;align-items:center}
+.tabs button.on{color:var(--brand);border-bottom-color:var(--brand)}
+.tabs .n{font-size:11px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:0 7px;color:var(--ink-2)}
+.bulk{display:flex;align-items:center;gap:12px;padding:10px 20px;background:var(--brand-soft);color:var(--brand);font-weight:600;border-bottom:1px solid var(--line)}
+.bulk .btn{margin-left:auto}
+
+/* ---------- Dashboard de portal ---------- */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:20px}
+.kpi{padding:16px 18px;display:flex;flex-direction:column;gap:4px}
+.kpi .v{font:800 26px var(--f-display);font-variant-numeric:tabular-nums}
+.kpi .d{font-size:12px;color:var(--ink-3)}
+.kpi .d b{color:var(--ok);font-weight:600}
+.dash{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px}
+.dash .col{display:flex;flex-direction:column;gap:20px;min-width:0}
+.quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.quick a{display:flex;gap:12px;align-items:center;padding:14px;border:1px solid var(--line);border-radius:var(--r);text-decoration:none;color:var(--ink);background:var(--surface);transition:border-color .15s, transform .15s}
+.quick a:hover{border-color:var(--brand);transform:translateY(-1px)}
+.quick .qi{width:38px;height:38px;border-radius:var(--r-sm);background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;flex:none}
+.quick b{font-weight:600;display:block;font-size:13.5px}
+.quick small{color:var(--ink-3);font-size:12px}
+.tasks{list-style:none;margin:0;padding:0}
+.tasks li{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line)}
+.tasks li:last-child{border-bottom:0}
+.tasks .t-txt{flex:1;min-width:0}
+.tasks .t-txt b{font-weight:600;display:block;overflow:hidden;text-overflow:ellipsis}
+.tasks .t-txt small{color:var(--ink-3);font-size:12px}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center;font-variant-numeric:tabular-nums}
+.cal .dh{font-size:11px;font-weight:600;color:var(--ink-3);padding:4px 0}
+.cal .d{height:34px;display:grid;place-items:center;border-radius:var(--r-sm);font-size:13px;position:relative;color:var(--ink-2)}
+.cal .d.out{color:var(--line-strong)}
+.cal .d.today{background:var(--brand);color:var(--brand-ink);font-weight:700}
+.cal .d.ev::after{content:"";position:absolute;bottom:4px;width:4px;height:4px;border-radius:50%;background:var(--danger)}
+.cal .d.today.ev::after{background:var(--brand-ink)}
+.agenda{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.agenda div{display:flex;gap:10px;align-items:center;font-size:13px;padding:8px 10px;border-radius:var(--r-sm);background:var(--surface-2)}
+.agenda .when{font-family:var(--f-mono);font-size:12px;color:var(--ink-3);width:56px;flex:none}
+
+/* ---------- Ficha de legajo ---------- */
+.emp{display:flex;gap:18px;align-items:center;padding:18px 20px;flex-wrap:wrap}
+.emp .avatar{width:56px;height:56px;font-size:18px;border-radius:14px}
+.emp-name{flex:1 1 220px;min-width:0}
+.emp-name h2{font-size:18px}
+.emp-meta{display:flex;gap:24px;flex-wrap:wrap}
+.emp-meta div{display:flex;flex-direction:column;gap:2px}
+.emp-meta span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.emp-meta b{font-weight:600}
+.form-layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:24px;margin-top:20px;align-items:start}
+.steps{position:sticky;top:calc(var(--top-h) + 20px);display:flex;flex-direction:column;gap:2px}
+.steps a{padding:8px 12px;border-radius:var(--r-sm);color:var(--ink-2);text-decoration:none;font-weight:500;border-left:2px solid var(--line)}
+.steps a.on{color:var(--brand);border-left-color:var(--brand);background:var(--brand-soft);font-weight:600}
+.form-stack{display:flex;flex-direction:column;gap:20px;min-width:0}
+.savebar{position:sticky;bottom:calc(60px + env(safe-area-inset-bottom,0px));margin-top:20px;display:flex;align-items:center;gap:10px;padding:12px 20px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow)}
+.savebar .grow{flex:1;color:var(--ink-3);font-size:13px}
+.callout{display:flex;gap:12px;padding:14px 16px;border-radius:var(--r);background:var(--brand-soft);color:var(--ink);border:1px solid color-mix(in srgb,var(--brand) 25%,transparent)}
+.callout svg{color:var(--brand);margin-top:1px}
+.callout.warn{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
+.callout.warn svg{color:var(--warn)}
+.dyn{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 24px;padding:18px;border-radius:var(--r);background:var(--surface-2);border:1px solid var(--line)}
+
+/* ---------- Portales ---------- */
+.portal-top{height:var(--top-h);display:flex;align-items:center;gap:14px;padding:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));padding-inline:28px;background:var(--nav-bg);color:var(--nav-fg-strong);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.portal-top .nav-brand{border:0;padding:0;height:auto}
+.portal-top .me{border-color:var(--nav-line);color:var(--nav-fg-strong)}
+.portal-top .me small{color:var(--nav-fg)}
+.portal-top .icon-btn{color:var(--nav-fg)}.portal-top .icon-btn:hover{background:var(--nav-bg-2);color:#fff}
+.portal-wrap{max-width:1180px;margin:0 auto;padding:32px max(16px,env(safe-area-inset-right,0px)) 48px max(16px,env(safe-area-inset-left,0px))}
+.hello{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.hello h1{font-size:26px}
+.hello p{margin:4px 0 0;color:var(--ink-2)}
+.portals{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.portal{display:flex;flex-direction:column;gap:14px;padding:20px;text-decoration:none;color:var(--ink);border-radius:var(--r-lg);border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow);transition:border-color .15s, transform .15s, box-shadow .15s;position:relative}
+.portal:hover{border-color:var(--brand);transform:translateY(-2px);box-shadow:0 8px 28px rgba(15,27,45,.10)}
+.portal .pi{width:44px;height:44px;border-radius:12px;display:grid;place-items:center}
+.portal .pi svg{width:22px;height:22px}
+.portal h3{font-size:16px}
+.portal p{margin:0;color:var(--ink-3);font-size:13px;line-height:1.45}
+.portal .pf{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3)}
+.portal.locked{opacity:.55;pointer-events:none;box-shadow:none;background:var(--surface-2)}
+.portal .lock{position:absolute;top:18px;right:18px;color:var(--ink-3)}
+.c1{background:#e7effa;color:#1d5ca8}.c2{background:#e3f4ec;color:#17804f}.c3{background:#fdf1dc;color:#9a5b00}.c4{background:#fbe7ee;color:#b0305f}
+.c5{background:#eeeafc;color:#5b44c4}.c6{background:#e3f3f6;color:#0f7a8c}.c7{background:#f0f2f5;color:#47556a}.c8{background:#e8f6e6;color:#3b7d1c}
+:root[data-theme="dark"] .portal .pi,
+:root[data-theme="dark"] .portal .pi{filter:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pi[class*="c"]{background:color-mix(in srgb,currentColor 16%,transparent)!important}}
+:root[data-theme="dark"] .pi[class*="c"]{background:color-mix(in srgb,currentColor 16%,transparent)!important}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .c1{color:#7fb3f5}:root:not([data-theme="light"]) .c2{color:#5fd09a}:root:not([data-theme="light"]) .c3{color:#f0b357}:root:not([data-theme="light"]) .c4{color:#f08cb0}:root:not([data-theme="light"]) .c5{color:#a898f5}:root:not([data-theme="light"]) .c6{color:#5ccbdc}:root:not([data-theme="light"]) .c7{color:#a9b6c8}:root:not([data-theme="light"]) .c8{color:#8fd06a}}
+:root[data-theme="dark"] .c1{color:#7fb3f5}:root[data-theme="dark"] .c2{color:#5fd09a}:root[data-theme="dark"] .c3{color:#f0b357}:root[data-theme="dark"] .c4{color:#f08cb0}:root[data-theme="dark"] .c5{color:#a898f5}:root[data-theme="dark"] .c6{color:#5ccbdc}:root[data-theme="dark"] .c7{color:#a9b6c8}:root[data-theme="dark"] .c8{color:#8fd06a}
+
+/* ---------- Login ---------- */
+.login{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);min-height:100%}
+.login-art{position:relative;overflow:hidden;background:var(--nav-bg);color:#fff;padding:40px 48px;display:flex;flex-direction:column;gap:32px}
+.login-art::before{content:"";position:absolute;inset:0;background:
+  radial-gradient(600px 420px at 85% 15%, rgba(61,154,214,.35), transparent 60%),
+  radial-gradient(500px 400px at 10% 95%, rgba(29,92,168,.45), transparent 60%),
+  repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 44px),
+  repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 44px)}
+.login-art > *{position:relative}
+.login-art .nav-brand{padding:0;border:0;height:auto}
+.login-art h1{font-size:clamp(28px,3.4vw,42px);line-height:1.12;max-width:16ch;margin-top:auto;font-weight:800}
+.login-art p{color:#b9c6d8;max-width:46ch;margin:0;font-size:15px}
+.mods{display:flex;flex-wrap:wrap;gap:8px;max-width:520px}
+.mods span{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:#dbe4ef}
+.login-art .foot{font-size:12px;color:#7f91a8;display:flex;gap:16px;flex-wrap:wrap}
+.login-form{display:grid;place-items:center;padding:40px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px));background:var(--surface)}
+.login-form form{width:min(380px,100%);display:flex;flex-direction:column;gap:18px}
+.org{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px dashed var(--line-strong);border-radius:var(--r);color:var(--ink-3);font-size:12px}
+.org .ph{width:36px;height:36px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center}
+.login-form h2{font-size:24px;font-weight:800}
+.row-between{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px}
+.sso{display:flex;align-items:center;gap:12px;color:var(--ink-3);font-size:12px}
+.sso::before,.sso::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* ---------- Guía ---------- */
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.sw{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.sw div{height:64px}
+.sw p{margin:0;padding:8px 10px;font-size:12px}
+.sw p b{display:block;font-size:13px}
+.type-row{display:flex;align-items:baseline;gap:20px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.type-row .meta{width:160px;flex:none;font-family:var(--f-mono);font-size:12px;color:var(--ink-3)}
+.demo-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.principles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.principles .card-b h3{margin-bottom:6px}
+.principles p{margin:0;color:var(--ink-2);font-size:13px}
+.compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0}
+.compare > div{padding:14px 20px;border-bottom:1px solid var(--line);font-size:13px}
+.compare > div:nth-child(odd){color:var(--ink-3);border-right:1px solid var(--line)}
+.compare .h{font-weight:700;color:var(--ink)!important;background:var(--surface-2);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+
+/* ---------- Demo switcher ---------- */
+.demo{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:20;display:flex;gap:4px;padding:5px;border-radius:999px;background:var(--ink);box-shadow:0 8px 30px rgba(0,0,0,.25);max-width:calc(100vw - 32px);overflow-x:auto}
+.demo a,.demo button{flex:none;font-size:12px;font-weight:600;color:var(--bg);opacity:.7;text-decoration:none;padding:6px 11px;border-radius:999px;border:0;background:none;cursor:pointer;white-space:nowrap}
+.demo a:hover,.demo button:hover{opacity:1}
+.demo a.on{opacity:1;background:color-mix(in srgb,var(--bg) 18%,transparent)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:76px;z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:var(--r);font-weight:600;display:flex;gap:8px;align-items:center;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+
+/* ---------- Responsive ---------- */
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.dash{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:900px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .nav{position:fixed;left:0;top:0;bottom:0;width:var(--nav-w);z-index:40;transform:translateX(-100%);transition:transform .2s;padding-left:env(safe-area-inset-left,0px)}
+  .app.open .nav{transform:none;box-shadow:0 0 0 100vmax rgba(0,0,0,.4)}
+  .menu-toggle{display:inline-grid}
+  .omni{display:none}.me-txt{display:none}
+  .content{padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .topbar{padding-left:max(16px,env(safe-area-inset-left,0px))}
+  .form-layout{grid-template-columns:minmax(0,1fr)}.steps{display:none}
+  .login{grid-template-columns:minmax(0,1fr)}.login-art{padding:28px max(16px,env(safe-area-inset-right,0px)) 28px max(16px,env(safe-area-inset-left,0px));gap:18px}.login-art h1{margin-top:8px}
+  .portal-top{padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+}
+@media (max-width:640px){
+  .grid-form,.grid-3,.dyn,.quick{grid-template-columns:minmax(0,1fr)}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .emp-meta{gap:14px}
+  .compare{grid-template-columns:minmax(0,1fr)}.compare > div:nth-child(odd){border-right:0;padding-bottom:4px;border-bottom:0}
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></symbol>
+  <symbol id="i-dollar" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></symbol>
+  <symbol id="i-bars" viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol>
+  <symbol id="i-chevd" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-sign" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+  <symbol id="i-clip" viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><polyline points="12 7 12 12 15 14"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+</svg>
+
+<!-- =================== LOGIN =================== -->
+<section id="v-login" class="view login" hidden>
+  <div class="login-art">
+    <a class="nav-brand" href="#login"><span class="logo">N</span><span><b>NEWROL</b><small>RECURSOS HUMANOS</small></span></a>
+    <h1>Gestión integral del capital humano</h1>
+    <p>Legajos, asistencia, liquidación de haberes y carrera del personal en una sola plataforma, con los permisos de cada perfil.</p>
+    <div class="mods"><span>Legajos</span><span>Asistencia</span><span>Haberes</span><span>Medicina laboral</span><span>Carrera del personal</span><span>Contratos</span><span>RCA</span><span>Consultas</span></div>
+    <div class="foot"><span>Sistema v2.1.1</span><span>Conector v1.0.8</span><span>Conexión segura TLS</span></div>
+  </div>
+  <div class="login-form">
+    <form id="loginForm" novalidate>
+      <div class="org"><span class="ph"><svg class="i"><use href="#i-home"/></svg></span><span>Espacio para el logo del organismo<br>(se configura por cliente)</span></div>
+      <div><h2>Iniciar sesión</h2><p class="muted" style="margin:6px 0 0">Ingrese con su usuario de red institucional.</p></div>
+      <div class="field"><label for="lu">Usuario</label><div class="input-icon"><svg class="i"><use href="#i-user"/></svg><input class="input" id="lu" value="mgonzalez" autocomplete="username"></div></div>
+      <div class="field"><label for="lp">Contraseña</label><div class="input-icon"><svg class="i"><use href="#i-lock"/></svg><input class="input" id="lp" type="password" value="contraseña" autocomplete="current-password"></div></div>
+      <div class="row-between"><label class="check"><input type="checkbox" id="lr" checked> Recordarme</label><a href="#login">¿Olvidó su contraseña?</a></div>
+      <button class="btn primary block" type="submit" style="height:44px">Iniciar sesión</button>
+      <div class="sso">o</div>
+      <button class="btn block" type="button" onclick="location.hash='portales'">Ingresar con cuenta institucional (SSO)</button>
+    </form>
+  </div>
+</section>
+
+<!-- =================== PORTALES =================== -->
+<section id="v-portales" class="view" hidden>
+  <header class="portal-top">
+    <a class="nav-brand" href="#portales"><span class="logo">N</span><span><b>NEWROL</b><small>RECURSOS HUMANOS</small></span></a>
+    <div class="top-actions" style="margin-left:auto">
+      <button class="icon-btn dot" aria-label="Notificaciones"><svg class="i"><use href="#i-bell"/></svg></button>
+      <button class="icon-btn" aria-label="Cambiar tema" data-theme-toggle><svg class="i"><use href="#i-moon"/></svg></button>
+      <div class="me"><span class="avatar" style="background:#1d5ca8">MG</span><span class="me-txt">M. González<small>Analista de Legajos</small></span></div>
+      <a class="icon-btn" href="#login" aria-label="Salir"><svg class="i"><use href="#i-out"/></svg></a>
+    </div>
+  </header>
+  <div class="portal-wrap">
+    <div class="hello">
+      <div><span class="eyebrow">Jueves 26 de noviembre de 2026</span><h1>Buenas tardes, Mariana</h1><p>Elija un portal para continuar. Ve los portales habilitados para su perfil.</p></div>
+      <div class="input-icon" style="width:min(320px,100%)"><svg class="i"><use href="#i-search"/></svg><input class="input" id="psearch" placeholder="Buscar portal o función…"></div>
+    </div>
+    <div class="portals" id="portalGrid"></div>
+  </div>
+</section>
+
+<!-- =================== APP SHELL =================== -->
+<div id="v-app" class="view app" hidden>
+  <aside class="nav" id="nav"></aside>
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-toggle" id="menuBtn" aria-label="Abrir menú"><svg class="i"><use href="#i-menu"/></svg></button>
+      <nav class="crumbs" id="crumbs"></nav>
+      <div class="omni input-icon"><svg class="i"><use href="#i-search"/></svg><input class="input" id="omni" placeholder="Buscar legajo, DNI o función"><kbd>Ctrl K</kbd></div>
+      <div class="top-actions">
+        <button class="icon-btn dot" aria-label="Notificaciones"><svg class="i"><use href="#i-bell"/></svg></button>
+        <button class="icon-btn" aria-label="Cambiar tema" data-theme-toggle><svg class="i"><use href="#i-moon"/></svg></button>
+        <div class="me"><span class="avatar" style="background:#1d5ca8">MG</span><span class="me-txt">M. González<small>Analista de Legajos</small></span></div>
+      </div>
+    </header>
+    <main class="content" id="content"></main>
+  </div>
+</div>
+
+<nav class="demo" id="demo" aria-label="Pantallas del prototipo"></nav>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const ic = (n, cls='i') => `<svg class="${cls}"><use href="#i-${n}"/></svg>`;
+const AV = ['#1d5ca8','#17804f','#9a5b00','#b0305f','#5b44c4','#0f7a8c','#47556a','#3b7d1c'];
+const initials = n => n.split(/[ ,]+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('');
+const avatar = (n,i) => `<span class="avatar" style="background:${AV[i%AV.length]}">${initials(n)}</span>`;
+
+/* ----- Datos de ejemplo (ficticios) ----- */
+const PORTALS = [
+  {id:'legajos', name:'Legajos', ic:'folder', c:'c1', d:'Datos personales, familiares, estudios y situación de revista.', n:'3 tareas'},
+  {id:'asistencia', name:'Asistencia', ic:'clock', c:'c2', d:'Novedades asistenciales, firmas, fichas y cierres mensuales.', n:'47 sin firmar'},
+  {id:'haberes', name:'Haberes', ic:'dollar', c:'c3', d:'Liquidación de sueldos, conceptos y recibos.', n:'Cierre 30/11'},
+  {id:'medicina', name:'Medicina Laboral', ic:'pulse', c:'c4', d:'Licencias médicas, juntas y aptitudes.', n:'—'},
+  {id:'carrera', name:'Carrera del Personal', ic:'trend', c:'c5', d:'Grados, tramos, evaluaciones y capacitación.', n:'—'},
+  {id:'contratos', name:'Contratos', ic:'file', c:'c6', d:'Altas, renovaciones y bajas de contratados.', n:'—'},
+  {id:'rca', name:'RCA', ic:'share', c:'c7', d:'Registro de control de acceso y relojes.', n:'—'},
+  {id:'consultas', name:'Consultas', ic:'search', c:'c8', d:'Reportes y búsquedas transversales.', n:'—'},
+  {id:'estadisticas', name:'Estadísticas', ic:'bars', c:'c1', d:'Tableros de dotación, ausentismo y costos.', n:'—', locked:true},
+  {id:'ajustes', name:'Ajustes', ic:'sliders', c:'c7', d:'Usuarios, perfiles, tablas y parámetros.', n:'—', locked:true},
+];
+const PEOPLE = [
+  ['Bustos, Mariana Inés',9,'23.005.019','Coordinación de Servicios Generales'],
+  ['Acuña, Elías Daniel',19,'13.862.957','Coordinación de Servicios Generales'],
+  ['Arce, Claudia Verónica',22,'21.762.524','Dirección de Compras'],
+  ['Benítez, Pablo Gerardo',34,'21.164.298','Dirección de Sistemas'],
+  ['Cáceres, Mónica Marta',40,'14.547.149','Mesa de Entradas'],
+  ['Domínguez, Hernán Marcelo',44,'17.448.823','Dirección de Presupuesto'],
+  ['Escobar, Silvia María',56,'20.715.853','Dirección de RR.HH.'],
+  ['Ferreyra, Pablo Fernando',78,'23.077.078','Asuntos Jurídicos'],
+  ['Giménez, Adriana Beatriz',91,'14.902.215','Tesorería'],
+];
+const NOVS = [
+  ['A406010400','14 f','Razones particulares',8207,'Galván, Andrea Fabiana','26/11/2026','KOLMOS'],
+  ['A406010400','14 f','Razones particulares',7253,'Ledesma, Mariela Beatriz','26/11/2026','KOLMOS'],
+  ['A201010300','Com','Comisión de servicio',62143,'Vallejos, María Victoria','26/11/2026','GDERRE'],
+  ['A402000500','14 f','Razones particulares',60425,'Villalba, Gustavo Alberto','26/11/2026','MAUBER'],
+  ['AJ07000000','13 a','Licencia anual ordinaria',56494,'Quiroga, Gonzalo Julián','26/11/2026','GFRASS'],
+  ['A100050000','Ato','Atención de familiar',55888,'Kanan, Daniela Giselle','26/11/2026','DKANAA'],
+  ['A100050000','Tar','Tardanza justificada',55902,'Molina, Ricardo Andrés','25/11/2026','DKANAA'],
+];
+const MENUS = {
+  legajos:{name:'Legajos', ic:'folder', groups:[
+    {label:'General', items:[{h:'inicio',t:'Inicio',ic:'home'},{h:'legajos-lista',t:'Legajos',ic:'folder'}]},
+    {label:'Familiares', items:[{t:'Familiares',ic:'users',sub:[{h:'conyuges',t:'Cónyuges'},{h:'x-hijos',t:'Hijos'},{h:'x-acargo',t:'Familiares a cargo'},{h:'x-emerg',t:'Contacto de emergencia'}]}]},
+    {label:'Otros', items:[{h:'x-estudios',t:'Estudios',ic:'book'},{h:'x-revista',t:'Situación de revista',ic:'file'}]}]},
+  asistencia:{name:'Asistencia', ic:'clock', groups:[
+    {label:'General', items:[{h:'inicio-asis',t:'Inicio',ic:'home'}]},
+    {label:'Novedades', items:[{t:'Novedades',ic:'cal',sub:[{h:'novedades',t:'Carga y firma',count:47},{h:'x-consulta',t:'Consulta de novedades'},{h:'x-ficha',t:'Ficha asistencial'},{h:'x-informes',t:'Informes'},{h:'x-instr',t:'Instructivo RCA'}]},
+      {h:'x-central',t:'Novedades central',ic:'layers'},{h:'x-cierre',t:'Procesos de cierre',ic:'check'}]}]},
+};
+
+/* ----- Rutas ----- */
+const ROUTES = {
+  login:{view:'login', label:'Login'},
+  portales:{view:'portales', label:'Portales'},
+  inicio:{portal:'legajos', label:'Inicio de portal', crumbs:['Inicio'], render:renderInicio},
+  conyuges:{portal:'legajos', label:'Búsqueda', crumbs:['Familiares','Cónyuges'], render:renderConyuges},
+  'conyuge-form':{portal:'legajos', label:'Ficha', crumbs:['Familiares','Cónyuges','Acuña, Elías Daniel'], active:'conyuges', render:renderConyugeForm},
+  novedades:{portal:'asistencia', label:'Novedades', crumbs:['Novedades','Carga y firma'], render:renderNovedades},
+  'novedad-nueva':{portal:'asistencia', label:'Nueva novedad', crumbs:['Novedades','Carga y firma','Agregar novedad'], active:'novedades', render:renderNovedadNueva},
+  guia:{portal:'legajos', label:'Guía de estilos', crumbs:['Guía de estilos'], active:'guia', render:renderGuia},
+};
+const DEMO_ORDER = ['login','portales','inicio','conyuges','conyuge-form','novedades','novedad-nueva','guia'];
+Object.assign(ROUTES, {'inicio-asis':{...ROUTES.inicio, portal:'asistencia'}});
+
+function go(){
+  let h = location.hash.slice(1);
+  if (h.startsWith('x-')) { toast('Pantalla no incluida en el prototipo'); return; }
+  if (h==='legajos-lista') h='conyuges';
+  if (!ROUTES[h]) h = 'login';
+  const r = ROUTES[h];
+  document.querySelectorAll('.view').forEach(v=>v.hidden=true);
+  if (r.view){ $('#v-'+r.view).hidden=false; }
+  else {
+    $('#v-app').hidden=false; $('#v-app').classList.remove('open');
+    renderNav(r.portal, r.active||h);
+    const P = MENUS[r.portal];
+    $('#crumbs').innerHTML = `<a href="#portales">Portales</a>${ic('chev')}<a href="#${r.portal==='asistencia'?'inicio-asis':'inicio'}">${P.name}</a>` + r.crumbs.map((c,i)=> `${ic('chev')}${i===r.crumbs.length-1?`<b>${c}</b>`:`<span>${c}</span>`}`).join('');
+    $('#content').innerHTML = r.render(r.portal); bindContent(h);
+  }
+  $('#demo').innerHTML = DEMO_ORDER.map(k=>`<a href="#${k}" class="${k===h?'on':''}">${ROUTES[k].label}</a>`).join('');
+  window.scrollTo(0,0);
+}
+
+function renderNav(portal, active){
+  const P = MENUS[portal];
+  const item = it => {
+    if (it.sub){
+      return `<a class="item" href="#${it.sub[0].h}">${ic(it.ic)}<span>${it.t}</span></a><div class="sub">${it.sub.map(s=>`<a class="item ${s.h===active?'active':''}" href="#${s.h}">${s.t}${s.count?`<span class="count">${s.count}</span>`:''}</a>`).join('')}</div>`;
+    }
+    return `<a class="item ${it.h===active||(it.h==='inicio-asis'&&active==='inicio-asis')?'active':''}" href="#${it.h}">${ic(it.ic)}<span>${it.t}</span></a>`;
+  };
+  $('#nav').innerHTML = `
+    <a class="nav-brand" href="#portales"><span class="logo">N</span><span><b>NEWROL</b><small>RECURSOS HUMANOS</small></span></a>
+    <a class="nav-portal" href="#portales" title="Cambiar de portal"><span class="pi">${ic(P.ic)}</span><span>${P.name}<small>Cambiar de portal</small></span>${ic('grid')}</a>
+    ${P.groups.map(g=>`<div class="nav-group"><div class="nav-label">${g.label}</div>${g.items.map(item).join('')}</div>`).join('')}
+    <div class="nav-group"><div class="nav-label">Sistema</div>
+      <a class="item ${active==='guia'?'active':''}" href="#guia">${ic('layers')}<span>Guía de estilos</span></a>
+      <a class="item" href="#portales">${ic('grid')}<span>Volver a portales</span></a>
+      <a class="item" href="#login">${ic('out')}<span>Salir</span></a></div>
+    <div class="nav-foot">Sistema v2.1.1 · Conector v1.0.8</div>`;
+}
+
+/* ----- Pantalla: inicio de portal ----- */
+function renderInicio(portal){
+  const asis = portal==='asistencia';
+  const quick = asis
+    ? [['Carga y firma de novedades','47 pendientes','sign','novedades'],['Agregar novedad','Carga individual','plus','novedad-nueva'],['Ficha asistencial','Por agente','file','x-ficha'],['Informes de novedades','Exportar a Excel','download','x-informes']]
+    : [['Datos de cónyuges','Familiares','users','conyuges'],['Legajos actualizados','Últimos 30 días','history','x-act'],['Consulta de hijos','Familiares','users','x-hijos'],['Antecedentes laborales','Legajo','file','x-ant']];
+  const kp = asis
+    ? [['47','Novedades sin firmar','<b>−12</b> vs. ayer'],['1.284','Agentes activos','En 38 dependencias'],['3,8 %','Ausentismo del mes','Meta: 4,5 %'],['4 días','Para el cierre','Cierre 30/11/2026']]
+    : [['1.284','Legajos activos','<b>+6</b> este mes'],['23','Legajos con datos incompletos','Revisar documentación'],['9','Constancias por vencer','Próximos 30 días'],['4 días','Para el cierre','Cierre 30/11/2026']];
+  const tasks = [['Liquidaciones · revisión de cargas de familia','Vence 30/11/2026','warn','Media'],['Liquidaciones · conceptos no remunerativos','Vence 01/12/2026','warn','Media'],['Liquidaciones · retroactivos octubre','Vence 06/12/2026','info','Baja'],['Cierre de novedades a descuento','Vence 28/11/2026','danger','Alta'],['Actualizar constancias de escolaridad','Vence 15/12/2026','info','Baja']];
+  const days = [];
+  for (let i=0;i<0;i++) days.push('');
+  return `
+  <div class="page-h"><div><span class="eyebrow">Portal de ${MENUS[portal].name}</span><h1>Inicio</h1><p>Resumen de su trabajo pendiente y accesos frecuentes.</p></div>
+    <div class="actions"><a class="btn" href="#${asis?'x-informes':'x-reporte'}">${ic('download')}Exportar</a><a class="btn primary" href="#${asis?'novedad-nueva':'conyuges'}">${ic('plus')}${asis?'Agregar novedad':'Nuevo registro'}</a></div></div>
+  <div class="kpis">${kp.map(k=>`<div class="card kpi"><span class="eyebrow">${k[1]}</span><span class="v">${k[0]}</span><span class="d">${k[2]}</span></div>`).join('')}</div>
+  <div class="dash">
+    <div class="col">
+      <div class="card"><div class="card-h"><h2>Accesos frecuentes</h2><button class="btn ghost sm">${ic('edit')}Personalizar</button></div>
+        <div class="card-b"><div class="quick">${quick.map(q=>`<a href="#${q[3]}"><span class="qi">${ic(q[2])}</span><span><b>${q[0]}</b><small>${q[1]}</small></span></a>`).join('')}</div></div></div>
+      <div class="card"><div class="card-h"><h2>Lista de tareas</h2><a class="btn ghost sm" href="#x-tareas">Ver todas</a></div>
+        <ul class="tasks">${tasks.map((t,i)=>`<li><label class="check"><input type="checkbox" id="tk${i}" aria-label="Completar tarea"></label><div class="t-txt"><b>${t[0]}</b><small>${t[1]}</small></div><span class="chip ${t[2]}">${t[3]}</span></li>`).join('')}</ul></div>
+    </div>
+    <div class="col">
+      <div class="card"><div class="card-h"><h2>Noviembre 2026</h2><div><button class="icon-btn" aria-label="Mes anterior">${ic('back')}</button><button class="icon-btn" aria-label="Mes siguiente">${ic('chev')}</button></div></div>
+        <div class="card-b">${calendar()}
+          <div class="agenda"><div><span class="when">26/11</span><span class="chip info">Hoy</span><span>Reunión de cierre con Haberes · 15:00</span></div>
+          <div><span class="when">28/11</span><span class="chip danger">Vence</span><span>Cierre de novedades a descuento</span></div>
+          <div><span class="when">04/11</span><span class="chip ok">Hecho</span><span>Carga de escolaridad 2do semestre</span></div></div>
+          <button class="btn sm" style="margin-top:14px">${ic('plus')}Agregar evento</button></div></div>
+    </div>
+  </div>`;
+}
+function calendar(){
+  const head = ['L','M','M','J','V','S','D'].map(d=>`<div class="dh">${d}</div>`).join('');
+  // Noviembre 2026 empieza en domingo -> 6 celdas vacías previas (octubre 26-31)
+  let cells = ''; for (let d=26; d<=31; d++) cells += `<div class="d out">${d}</div>`;
+  for (let d=1; d<=30; d++){ const cls=[d===26?'today':'', [4,20,26,28].includes(d)?'ev':''].join(' '); cells += `<div class="d ${cls}">${d}</div>`; }
+  for (let d=1; d<=6; d++) cells += `<div class="d out">${d}</div>`;
+  return `<div class="cal">${head}${cells}</div>`;
+}
+
+/* ----- Pantalla: búsqueda cónyuges ----- */
+function renderConyuges(){
+  return `
+  <div class="page-h"><div><span class="eyebrow">Familiares</span><h1>Cónyuges</h1><p>Seleccione un agente para ver o registrar los datos de su cónyuge.</p></div>
+    <div class="actions"><button class="btn">${ic('download')}Exportar</button></div></div>
+  <div class="card">
+    <div class="toolbar">
+      <div class="input-icon grow"><svg class="i"><use href="#i-search"/></svg><input class="input" id="q" placeholder="Buscar por legajo, nombre o documento"></div>
+      <select class="select" id="fdep" aria-label="Dependencia"><option>Todas las dependencias</option><option>Dirección de Sistemas</option><option>Dirección de RR.HH.</option></select>
+      <select class="select" id="fest" aria-label="Situación"><option>Personal activo</option><option>Todo el personal</option></select>
+    </div>
+    <div class="table-wrap"><table class="t"><thead><tr><th>Agente</th><th>Legajo</th><th>Documento</th><th>Cónyuge registrado</th><th style="text-align:right">Acciones</th></tr></thead>
+    <tbody id="tb">${PEOPLE.map((p,i)=>`<tr data-go="conyuge-form"><td><div class="person">${avatar(p[0],i)}<span><b>${p[0]}</b><small>${p[3]}</small></span></div></td>
+      <td><span class="tag">${p[1]}</span></td><td class="mono">${p[2]}</td>
+      <td>${[0,3,5].includes(i)?'<span class="chip">Sin datos</span>':[2,7].includes(i)?'<span class="chip warn">Constancia vencida</span>':'<span class="chip ok">Registrado</span>'}</td>
+      <td><div class="acts"><button class="icon-btn" aria-label="Ver">${ic('eye')}</button><button class="icon-btn" aria-label="Editar">${ic('edit')}</button><button class="icon-btn" aria-label="Imprimir">${ic('print')}</button><button class="icon-btn danger" aria-label="Eliminar">${ic('trash')}</button></div></td></tr>`).join('')}</tbody></table></div>
+    <div class="pager"><span>Mostrando 1–9 de 1.284 agentes</span><div class="pg"><button aria-label="Anterior">‹</button><button class="on">1</button><button>2</button><button>3</button><button>…</button><button>143</button><button aria-label="Siguiente">›</button></div></div>
+  </div>`;
+}
+
+/* ----- Pantalla: ficha cónyuge ----- */
+function renderConyugeForm(){
+  const f = (code,label,ctrl,cls='') => `<div class="field ${cls}"><label for="${code}"><span class="code">${code}</span>${label}</label>${ctrl}</div>`;
+  const sel = (id,opts) => `<select class="select" id="${id}"><option value="">Seleccione…</option>${opts.map(o=>`<option>${o}</option>`).join('')}</select>`;
+  return `
+  <div class="page-h"><div><a href="#conyuges" class="btn ghost sm" style="margin-left:-12px">${ic('back')}Volver a la búsqueda</a><h1 style="margin-top:6px">Datos del cónyuge</h1></div>
+    <div class="actions"><button class="btn">${ic('history')}Historial</button><button class="btn">${ic('print')}Imprimir</button></div></div>
+  <div class="card emp">
+    <span class="avatar" style="background:#17804f">AE</span>
+    <div class="emp-name"><h2>Acuña, Elías Daniel</h2><span class="chip ok">Activo</span></div>
+    <div class="emp-meta">
+      <div><span>Legajo</span><b class="mono">19</b></div><div><span>DNI</span><b class="mono">13.862.957</b></div>
+      <div><span>Ingreso</span><b class="mono">01/02/1984</b></div><div><span>Ubicación</span><b>Coord. Servicios Generales · D.T.O.</b></div></div>
+  </div>
+  <div class="form-layout">
+    <nav class="steps" aria-label="Secciones"><a class="on" href="#conyuge-form">Datos personales</a><a href="#conyuge-form">Carga de familia</a><a href="#conyuge-form">Discapacidad</a><a href="#conyuge-form">Observaciones y adjuntos</a></nav>
+    <form class="form-stack" id="cform">
+      <div class="card card-b"><div class="section-title"><span class="n">1</span><h2>Datos personales</h2></div>
+        <div class="grid-form">
+          ${f('A02','Apellido y nombre <span class="req">*</span>','<input class="input" id="A02" value="Pereyra, Lucía Andrea">')}
+          ${f('A03','Género',sel('A03x',['Femenino','Masculino','No binario']).replace('id="A03x"','id="A03"'))}
+          ${f('A05','Fecha de nacimiento','<input class="input" type="date" id="A05" value="1968-04-12">')}
+          ${f('A01','Tipo de documento',sel('A01',['DNI','Pasaporte','Cédula']))}
+          ${f('A22','Número de documento <span class="req">*</span>','<input class="input mono" id="A22" value="18.204.551" inputmode="numeric">')}
+          ${f('T05','Nacionalidad',sel('T05',['Argentina','Uruguaya','Paraguaya','Otra']))}
+        </div></div>
+      <div class="card card-b"><div class="section-title"><span class="n">2</span><h2>Carga de familia</h2></div>
+        <div class="grid-form">
+          ${f('U06','A cargo desde','<input class="input" type="date" id="U06" value="1995-03-01">')}
+          ${f('U07','A cargo hasta','<input class="input" type="date" id="U07">')}
+        </div></div>
+      <div class="card card-b"><div class="section-title"><span class="n">3</span><h2>Discapacidad</h2></div>
+        <div class="grid-form">
+          ${f('D08','¿Es persona con discapacidad?',sel('D08',['No','Sí']))}
+          ${f('D09','Presentó constancia (CUD)',sel('D09',['No','Sí']))}
+          ${f('D07','Vencimiento de la constancia','<input class="input" type="date" id="D07"><span class="help">Se avisará 30 días antes del vencimiento.</span>')}
+        </div></div>
+      <div class="card card-b"><div class="section-title"><span class="n">4</span><h2>Observaciones y adjuntos</h2></div>
+        <div class="grid-form">
+          ${f('T11','Observación','<textarea class="textarea" id="T11" placeholder="Agregue información relevante para Haberes o Legajos"></textarea>','full')}
+          <div class="field full"><label>Documento adjunto</label><div class="dropzone"><span class="ico">${ic('clip')}</span><div><b>Arrastre archivos aquí</b> o <a href="#conyuge-form">selecciónelos</a><div class="help">PDF, JPG o PNG · hasta 8 archivos de 10 MB</div></div></div></div>
+        </div></div>
+      <div class="savebar"><span class="grow">Última modificación: 12/09/2026 por KOLMOS</span><a class="btn" href="#conyuges">Cancelar</a><button class="btn primary" type="submit">${ic('check')}Guardar registro</button></div>
+    </form>
+  </div>`;
+}
+
+/* ----- Pantalla: novedades ----- */
+function renderNovedades(){
+  return `
+  <div class="page-h"><div><span class="eyebrow">Asistencia</span><h1>Novedades sin firma</h1><p>Revise y firme las novedades cargadas por su dependencia.</p></div>
+    <div class="actions"><button class="btn">${ic('share')}Ver transferencias</button><a class="btn primary" href="#novedad-nueva">${ic('plus')}Agregar novedad</a></div></div>
+  <div class="card">
+    <div class="tabs" role="tablist"><button class="on">Sin firma <span class="n">47</span></button><button>Firmadas hoy <span class="n">112</span></button><button>Rechazadas <span class="n">3</span></button><button>Transferencias <span class="n">5</span></button></div>
+    <div class="toolbar">
+      <div class="input-icon grow"><svg class="i"><use href="#i-search"/></svg><input class="input" id="nq" placeholder="Buscar por legajo, DNI, nombre o código de novedad"></div>
+      <select class="select" id="ndep" aria-label="Dependencia"><option>Todas las dependencias</option><option>A406010400</option><option>A100050000</option></select>
+      <select class="select" id="nby" aria-label="Cargado por"><option>Cargado por: todos</option><option>KOLMOS</option><option>DKANAA</option></select>
+    </div>
+    <div class="bulk" id="bulk" hidden><span id="bulkN">0 seleccionadas</span><button class="btn sm primary" id="signSel">${ic('sign')}Firmar seleccionadas</button></div>
+    <div class="table-wrap"><table class="t"><thead><tr><th style="width:40px"><input type="checkbox" id="all" aria-label="Seleccionar todas" style="accent-color:var(--brand)"></th><th>Agente</th><th>Dependencia</th><th>Novedad</th><th>Cargado</th><th>Usuario</th><th style="text-align:right">Acciones</th></tr></thead>
+    <tbody>${NOVS.map((n,i)=>`<tr><td><input type="checkbox" class="rs" id="rs${i}" aria-label="Seleccionar" style="accent-color:var(--brand)"></td>
+      <td><div class="person">${avatar(n[4],i+2)}<span><b>${n[4]}</b><small>Legajo <span class="mono">${n[3]}</span></small></span></div></td>
+      <td class="mono">${n[0]}</td><td><span class="tag">${n[1]}</span> <span class="muted">${n[2]}</span></td><td class="mono">${n[5]}</td><td class="mono muted">${n[6]}</td>
+      <td><div class="acts"><button class="icon-btn" aria-label="Ver">${ic('eye')}</button><button class="icon-btn ok" aria-label="Firmar" data-sign>${ic('check')}</button><button class="icon-btn danger" aria-label="Rechazar">${ic('trash')}</button></div></td></tr>`).join('')}</tbody></table></div>
+    <div class="pager"><span>Mostrando 1–7 de 47 novedades</span><div class="pg"><button aria-label="Anterior">‹</button><button class="on">1</button><button>2</button><button>…</button><button>7</button><button aria-label="Siguiente">›</button></div></div>
+  </div>`;
+}
+
+/* ----- Pantalla: nueva novedad ----- */
+const ARTS = {
+  '':'',
+  '13a':[['Desde','date'],['Hasta','date'],['Días hábiles','number']],
+  '14f':[['Fecha','date'],['Horas','number'],['Días usados en el año','text','3 de 6']],
+  'com':[['Destino','text','Delegación Rosario'],['Desde','date'],['Hasta','date']],
+  'tar':[['Fecha','date'],['Hora de ingreso','time'],['Motivo','text']],
+};
+function renderNovedadNueva(){
+  return `
+  <div class="page-h"><div><a href="#novedades" class="btn ghost sm" style="margin-left:-12px">${ic('back')}Volver a novedades</a><h1 style="margin-top:6px">Agregar novedad</h1><p>Seleccione el agente y el artículo. Los campos se completan según el artículo.</p></div></div>
+  <form class="form-stack" id="nform" style="max-width:920px">
+    <div class="card card-b"><div class="section-title"><span class="n">1</span><h2>Registro</h2></div>
+      <div class="grid-3">
+        <div class="field"><label for="nf">Fecha de carga</label><input class="input mono" id="nf" value="26/11/2026" readonly></div>
+        <div class="field"><label for="nh">Hora</label><input class="input mono" id="nh" value="14:50" readonly></div>
+        <div class="field"><label for="nu">Usuario</label><input class="input mono" id="nu" value="SIPADM" readonly></div>
+      </div></div>
+    <div class="card card-b"><div class="section-title"><span class="n">2</span><h2>Agente y artículo</h2></div>
+      <div class="grid-form">
+        <div class="field full"><label for="na">Agente <span class="req">*</span></label><div class="input-icon"><svg class="i"><use href="#i-search"/></svg><input class="input" id="na" value="Quiroga, Gonzalo Julián · Legajo 56494" ></div><span class="help">Busque por apellido, legajo o DNI.</span></div>
+        <div class="field full"><label for="nart">Artículo <span class="req">*</span></label>
+          <select class="select" id="nart"><option value="">Seleccione un artículo…</option><option value="13a" selected>13 a · Licencia anual ordinaria</option><option value="14f">14 f · Razones particulares</option><option value="com">Com · Comisión de servicio</option><option value="tar">Tar · Tardanza justificada</option></select></div>
+        <div class="full" id="dyn"></div>
+        <div class="field full"><label for="nobs">Observaciones</label><textarea class="textarea" id="nobs" placeholder="Opcional"></textarea></div>
+        <div class="field full"><label>Archivos adjuntos</label><div class="dropzone"><span class="ico">${ic('clip')}</span><div><b>Arrastre archivos aquí</b> o <a href="#novedad-nueva">selecciónelos</a><div class="help">Puede adjuntar hasta 8 archivos</div></div></div></div>
+      </div></div>
+    <div class="callout"><svg class="i"><use href="#i-info"/></svg><div><b>Esta novedad puede firmarse automáticamente.</b><br><label class="check" style="margin-top:6px"><input type="checkbox" id="nfirm" checked> Firmar la novedad al guardar</label></div></div>
+    <div class="savebar"><span class="grow">Los campos con * son obligatorios.</span><a class="btn" href="#novedades">Cancelar</a><button class="btn" type="button" id="saveMore">Guardar y cargar otra</button><button class="btn primary" type="submit">${ic('check')}Guardar</button></div>
+  </form>`;
+}
+function renderDyn(){
+  const v = $('#nart').value, f = ARTS[v];
+  if (!f){ $('#dyn').innerHTML = `<div class="callout warn"><svg class="i"><use href="#i-info"/></svg><span>Seleccione un artículo para ver los campos que debe completar.</span></div>`; return; }
+  const today = '2026-11-26';
+  $('#dyn').innerHTML = `<div class="eyebrow" style="margin-bottom:8px">Datos del artículo</div><div class="dyn">${f.map((x,i)=>`<div class="field"><label for="d${i}">${x[0]}</label><input class="input" id="d${i}" type="${x[1]}" ${x[2]?`value="${x[2]}"`:x[1]==='date'?`value="${today}"`:''}></div>`).join('')}</div>`;
+}
+
+/* ----- Pantalla: guía de estilos ----- */
+function renderGuia(){
+  const sw = [['Marca','--brand','Acciones primarias, enlaces, foco'],['Celeste','--celeste','Acento de navegación activa'],['Navegación','--nav-bg','Barra lateral y cabeceras'],['Texto','--ink','Títulos y datos'],['Texto secundario','--ink-2','Etiquetas y descripciones'],['Fondo','--bg','Lienzo de la aplicación'],['Superficie','--surface','Tarjetas y formularios'],['Borde','--line','Separadores y contornos'],['Éxito','--ok','Firmado, activo, registrado'],['Advertencia','--warn','Por vencer, prioridad media'],['Error','--danger','Rechazado, vencido, eliminar']];
+  return `
+  <div class="page-h"><div><span class="eyebrow">Sistema de diseño NEWROL</span><h1>Guía de estilos</h1><p>Las reglas que comparten todos los portales para que el sistema se vea y se use igual en cada pantalla.</p></div></div>
+  <div class="principles" style="margin-bottom:20px">
+    <div class="card card-b"><h3>Una sola cáscara</h3><p>Todos los módulos, incluido Asistencia, usan la misma barra lateral, barra superior y migas de pan.</p></div>
+    <div class="card card-b"><h3>El dato primero</h3><p>Legajos, DNI y fechas en tipografía monoespaciada y alineados. Los estados se leen por color y por texto.</p></div>
+    <div class="card card-b"><h3>Acción principal visible</h3><p>Un solo botón primario por pantalla, arriba a la derecha. Guardar queda fijo al pie de los formularios.</p></div>
+    <div class="card card-b"><h3>Formularios por secciones</h3><p>Campos agrupados con título, código de campo visible y ayuda contextual. Nada de formularios de una sola columna larga.</p></div>
+  </div>
+  <div class="card" style="margin-bottom:20px"><div class="card-h"><h2>Antes y después</h2></div>
+    <div class="compare">
+      <div class="h">Hoy</div><div class="h">Propuesta</div>
+      <div>Asistencia tiene otra cabecera, otro menú y otros botones (rojo y verde).</div><div>Mismo layout y mismos componentes en todos los portales.</div>
+      <div>Portales con fotos de stock de distinto estilo.</div><div>Tarjetas con ícono, descripción y pendientes del portal; bloqueo visible según perfil.</div>
+      <div>Menú negro puro con texto pequeño y poco contraste.</div><div>Navegación azul noche, ítem activo marcado, contadores de pendientes.</div>
+      <div>Etiquetas de campo en mayúsculas grises con códigos mezclados.</div><div>Etiqueta legible + código técnico discreto + ayuda debajo.</div>
+      <div>Botones Guardar/Cancelar al final del scroll.</div><div>Barra de guardado fija con fecha de última modificación.</div>
+      <div>Sin modo oscuro ni versión móvil.</div><div>Modo claro y oscuro, adaptable a tablet y teléfono.</div>
+    </div></div>
+  <div class="card" style="margin-bottom:20px"><div class="card-h"><h2>Color</h2><span class="muted">Tokens CSS</span></div><div class="card-b"><div class="swatches">
+    ${sw.map(s=>`<div class="sw"><div style="background:var(${s[1]})"></div><p><b>${s[0]}</b><span class="mono muted">${s[1]}</span><br><span class="muted">${s[2]}</span></p></div>`).join('')}</div></div></div>
+  <div class="card" style="margin-bottom:20px"><div class="card-h"><h2>Tipografía</h2></div><div class="card-b">
+    <div class="type-row"><span class="meta">Manrope 800 · 22</span><h1>Título de pantalla</h1></div>
+    <div class="type-row"><span class="meta">Manrope 700 · 16</span><h2>Título de sección</h2></div>
+    <div class="type-row"><span class="meta">Public Sans 400 · 14</span><span>Texto de interfaz para formularios, tablas y descripciones.</span></div>
+    <div class="type-row"><span class="meta">Public Sans 600 · 11</span><span class="eyebrow">Etiqueta superior</span></div>
+    <div class="type-row" style="border:0"><span class="meta">IBM Plex Mono · 13</span><span class="mono">Legajo 56494 · DNI 13.862.957 · 26/11/2026</span></div>
+  </div></div>
+  <div class="card"><div class="card-h"><h2>Componentes</h2></div><div class="card-b" style="display:flex;flex-direction:column;gap:20px">
+    <div class="demo-row"><button class="btn primary">${ic('check')}Primario</button><button class="btn">Secundario</button><button class="btn ghost">Terciario</button><button class="btn danger">${ic('trash')}Eliminar</button><button class="btn sm">Pequeño</button></div>
+    <div class="demo-row"><span class="chip ok">Firmada</span><span class="chip warn">Por vencer</span><span class="chip danger">Rechazada</span><span class="chip info">En revisión</span><span class="chip">Sin datos</span><span class="tag">14 f</span></div>
+    <div class="grid-3"><div class="field"><label for="g1"><span class="code">A02</span>Campo de texto</label><input class="input" id="g1" placeholder="Escriba aquí"></div>
+      <div class="field"><label for="g2">Lista desplegable</label><select class="select" id="g2"><option>Seleccione…</option></select></div>
+      <div class="field"><label for="g3">Solo lectura</label><input class="input mono" id="g3" value="SIPADM" readonly></div></div>
+    <div class="callout"><svg class="i"><use href="#i-info"/></svg><span>Los avisos informativos usan el color de marca; las advertencias, el ámbar.</span></div>
+  </div></div>`;
+}
+
+/* ----- Interacción ----- */
+function bindContent(h){
+  document.querySelectorAll('[data-go]').forEach(tr=>tr.addEventListener('click',e=>{ if(!e.target.closest('button')) location.hash=tr.dataset.go; }));
+  if (h==='conyuge-form') $('#cform').addEventListener('submit',e=>{e.preventDefault();toast('Registro guardado');});
+  if (h==='novedad-nueva'){
+    renderDyn(); $('#nart').addEventListener('change',renderDyn);
+    $('#nform').addEventListener('submit',e=>{e.preventDefault();toast($('#nfirm').checked?'Novedad guardada y firmada':'Novedad guardada');setTimeout(()=>location.hash='novedades',900);});
+    $('#saveMore').addEventListener('click',()=>{toast('Novedad guardada. Puede cargar la siguiente.');$('#na').value='';$('#na').focus();});
+  }
+  if (h==='novedades'){
+    const upd=()=>{const n=document.querySelectorAll('.rs:checked').length;$('#bulk').hidden=!n;$('#bulkN').textContent=n+(n===1?' novedad seleccionada':' novedades seleccionadas');document.querySelectorAll('.rs').forEach(c=>c.closest('tr').classList.toggle('sel',c.checked));};
+    $('#all').addEventListener('change',e=>{document.querySelectorAll('.rs').forEach(c=>c.checked=e.target.checked);upd();});
+    document.querySelectorAll('.rs').forEach(c=>c.addEventListener('change',upd));
+    $('#signSel').addEventListener('click',()=>{const rows=[...document.querySelectorAll('.rs:checked')].map(c=>c.closest('tr'));rows.forEach(r=>r.remove());$('#all').checked=false;upd();toast(rows.length+' novedades firmadas');});
+    document.querySelectorAll('[data-sign]').forEach(b=>b.addEventListener('click',()=>{b.closest('tr').remove();upd();toast('Novedad firmada');}));
+  }
+  if (h==='conyuges'){
+    $('#q').addEventListener('input',e=>{const v=e.target.value.toLowerCase().replace(/\./g,'');document.querySelectorAll('#tb tr').forEach(tr=>tr.hidden=!tr.textContent.toLowerCase().replace(/\./g,'').includes(v));});
+  }
+}
+let tt; function toast(msg){const t=$('#toast');t.innerHTML=ic('check')+msg;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2200);}
+
+$('#portalGrid').innerHTML = PORTALS.map(p=>`<a class="portal ${p.locked?'locked':''}" href="#${p.id==='legajos'?'inicio':p.id==='asistencia'?'inicio-asis':'x-'+p.id}">
+  ${p.locked?`<span class="lock">${ic('lock')}</span>`:''}<span class="pi ${p.c}">${ic(p.ic)}</span>
+  <div><h3>${p.name}</h3><p>${p.d}</p></div>
+  <div class="pf"><span>${p.locked?'Sin permiso para su perfil':p.n}</span>${p.locked?'':ic('chev')}</div></a>`).join('');
+$('#psearch').addEventListener('input',e=>{const v=e.target.value.toLowerCase();document.querySelectorAll('.portal').forEach(p=>p.hidden=!p.textContent.toLowerCase().includes(v));});
+$('#loginForm').addEventListener('submit',e=>{e.preventDefault();location.hash='portales';});
+$('#menuBtn').addEventListener('click',()=>$('#v-app').classList.toggle('open'));
+$('#nav').addEventListener('click',e=>{ if(e.target.closest('a')) $('#v-app').classList.remove('open'); });
+document.addEventListener('click',e=>{
+  if (e.target.closest('[data-theme-toggle]')){
+    const r=document.documentElement, dark = r.dataset.theme ? r.dataset.theme==='dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    r.dataset.theme = dark?'light':'dark';
+  }
+  const app=$('#v-app'); if(app.classList.contains('open') && !e.target.closest('.nav') && !e.target.closest('#menuBtn')) app.classList.remove('open');
+});
+document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k' && !$('#v-app').hidden){e.preventDefault();$('#omni').focus();} });
+window.addEventListener('hashchange',go); go();
+</script>
