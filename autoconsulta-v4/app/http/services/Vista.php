@@ -67,4 +67,53 @@ class Vista
             'pagTexto' => isset($paginas[$pag]) ? $paginas[$pag] : '',
         );
     }
+
+    /* ------------------------------------------------------------------
+     * Vista gerencial (consulta de un agente desde el tablero)
+     * ------------------------------------------------------------------ */
+
+    /** Parámetro ?legajo= para los enlaces gerenciales. Se codifica para que '+', '/' o '=' no se alteren. */
+    public static function q($legajoCoded)
+    {
+        return '?legajo=' . rawurlencode((string) $legajoCoded);
+    }
+
+    /** Foto del agente consultado (misma lógica que User::getImageAttribute). */
+    public static function fotoLegajo($infoUsuario)
+    {
+        $foto = $infoUsuario ? $infoUsuario->Fotolegajo()->first() : null;
+        if ($foto && $foto->fotos) {
+            return asset('assets/docs/' . $foto->fotos->Nombre);
+        }
+        return asset('assets/images/not-found.png');
+    }
+
+    /** Sección y pantalla activas en la vista gerencial. Devuelve: sec, pag, secTexto, pagTexto. */
+    public static function estadoGerencial($subtab, $active)
+    {
+        $sec = 'personal';
+        $pag = '';
+        if (Route::is('gerencial.recibos.show')) { $sec = 'haberes'; }
+        elseif (Route::is('gerencial.asistencia.dashboard')) { $sec = 'asistencia'; $pag = 'resumen'; }
+        elseif (Route::is('gerencial.asistencia.index')) { $sec = 'asistencia'; $pag = 'calendario'; }
+        elseif (Route::is('gerencial.asistencia.bandasHorarias')) { $sec = 'asistencia'; $pag = 'bandas'; }
+        elseif (Route::is('gerencial.asistencia.licencias')) { $sec = 'asistencia'; $pag = 'licencias'; }
+        elseif (Route::is('gerencial.asistencia.accesos')) { $sec = 'asistencia'; $pag = 'accesos'; }
+        elseif (Route::is('gerencial.cursos.index')) { $sec = 'carrera'; $pag = 'capacitacion'; }
+        elseif ($subtab == 'carrera') { $sec = 'carrera'; $pag = ($active == 2 ? 'carrera' : 'evaluaciones'); }
+        elseif (Route::is('gerencial.contrato.index')) { $sec = 'contrato'; }
+
+        $secciones = array('personal' => 'Datos personales', 'haberes' => 'Haberes', 'asistencia' => 'Asistencia',
+            'carrera' => 'Carrera', 'contrato' => 'Contrato');
+        $paginas = array('resumen' => 'Resumen por mes', 'calendario' => 'Calendario', 'bandas' => 'Bandas horarias',
+            'licencias' => 'Licencias', 'accesos' => 'Accesos', 'capacitacion' => 'Capacitación',
+            'evaluaciones' => 'Evaluaciones', 'carrera' => 'Carrera administrativa');
+
+        return array(
+            'sec' => $sec,
+            'pag' => $pag,
+            'secTexto' => $secciones[$sec],
+            'pagTexto' => isset($paginas[$pag]) ? $paginas[$pag] : '',
+        );
+    }
 }

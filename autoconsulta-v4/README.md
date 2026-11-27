@@ -87,7 +87,51 @@ Antes de publicarlo, conviene probarlo en un entorno de prueba con un usuario re
 - el visor de un recibo;
 - las observaciones.
 
+## Vista gerencial (consulta de un agente desde el tablero)
+
+También tiene el diseño nuevo. Se reemplazan:
+
+| Archivo | Pantalla |
+|---|---|
+| `resources/views/layouts/header-gerencial.blade.php` | Diseño general de la consulta |
+| `resources/views/gerencial/general.blade.php` | Datos generales (marco externo) |
+| `resources/views/gerencial/recibos.blade.php` | Haberes |
+| `resources/views/gerencial/asistencia-dashboard.blade.php` | Resumen de asistencia por mes |
+| `resources/views/gerencial/asistencia.blade.php` | Calendario |
+| `resources/views/gerencial/bandas.blade.php` | Bandas horarias |
+| `resources/views/gerencial/licencias.blade.php` | Licencias |
+| `resources/views/gerencial/acceso.blade.php` | Accesos |
+| `resources/views/gerencial/cursos.blade.php` | Capacitación |
+| `resources/views/gerencial/verificar-datos.blade.php` | Evaluaciones y Carrera administrativa |
+| `resources/views/gerencial/contratos.blade.php` | Contrato |
+| `resources/views/gerencial/partials/navbar*.blade.php` | Quedan vacíos: la navegación pasó al menú lateral |
+
+Y se agregan `partials/nr-g-nav`, `partials/nr-g-topbar`, `partials/nr-g-tabs-asistencia` y `partials/nr-g-tabs-carrera`.
+
+Qué tiene esta vista:
+- El menú lateral muestra la foto, el nombre y el legajo del **agente consultado**, con la marca "Solo lectura". La barra superior indica "Modo consulta".
+- Todos los enlaces conservan el parámetro `?legajo=`. Ahora se codifica, para que los caracteres `+`, `/` y `=` del legajo en base64 no se alteren en la URL.
+- El resumen de asistencia por mes pasó a una tabla, con una columna de presencia (días trabajados sobre días laborables) calculada con los mismos datos.
+- Conserva el mismo calendario, los botones "Volver al resumen por mes", el visor de recibos y las consultas a las API.
+- Contrato usa la misma dirección de la API que la versión gerencial anterior (`sv3000-prod`). La sección de expedientes, que estaba comentada, sigue sin mostrarse.
+
+Correcciones menores:
+- La foto del agente ya no falla cuando no tiene foto cargada. La expresión anterior concatenaba antes de evaluar la condición.
+- Los scripts de observaciones, el indicador de carga y el envío del marco externo solo se ejecutan donde existen esos elementos.
+- `$usarPost` se verifica antes de usarse.
+
+## ⚠️ Importante: acceso sin autenticación en la vista gerencial
+
+En `routes/web.php`, las rutas `gerencial/*` y `consulta/f1359` están **fuera** del grupo `middleware('auth')`. El legajo que reciben está codificado en base64, que no es un cifrado: cualquiera puede generarlo. Por lo tanto, cualquier persona que conozca la dirección del servidor, aunque no inicie sesión, puede ver los datos personales, recibos de sueldo, Formulario 1359, asistencia y carrera de **cualquier agente**, cambiando el número de legajo.
+
+Además, dentro de las rutas que sí piden sesión, varios controladores (Recibos, Asistencia, Cursos, Contrato, Tabs) aceptan `?legajo=`. Un empleado con sesión iniciada podría usarlo para consultar los datos de otro.
+
+Este paquete **no cambia ese comportamiento**, porque eso no se resuelve en las vistas y podría cortar el acceso desde el tablero. Le recomiendo corregirlo cuanto antes:
+
+1. Mover las rutas gerenciales dentro de `middleware('auth')`.
+2. En cada controlador, aceptar `?legajo=` solo si el usuario tiene un perfil autorizado (RR.HH. o director) y el agente pertenece a su área.
+3. Si el tablero necesita entrar sin sesión, reemplazar el legajo en base64 por un token firmado y con vencimiento.
+
 ## Fuera de este paquete
 
-- Las vistas **gerenciales** (`resources/views/gerencial/*` y `layouts/header-gerencial`), que usa el tablero para ver a un empleado, siguen con el diseño anterior. Pueden adaptarse con los mismos componentes en un segundo paso.
 - El panel de RR.HH. (`rrhh/agente-consulta-crear`), que se abre dentro de "Solicitud de licencia", hereda los estilos nuevos de Bootstrap pero no se rediseñó.

@@ -520,7 +520,7 @@ dl,dt{font-weight:inherit}
 .login-form .login-error{margin:0}
 
 /* Foto del empleado */
-.nav-me img.foto{width:72px;height:72px;border-radius:18px;object-fit:cover;border:2px solid var(--nav-line);background:var(--nav-bg)}
+.nav-me img.foto{overflow:hidden;font-size:0;color:transparent;width:72px;height:72px;border-radius:18px;object-fit:cover;border:2px solid var(--nav-line);background:var(--nav-bg)}
 .me img{width:30px;height:30px;border-radius:50%;object-fit:cover}
 
 @media (max-width:640px){
